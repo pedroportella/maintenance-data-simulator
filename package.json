@@ -3,12 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "maintenance-data-simulator": "scripts/simulator.mjs",
+    "simulator": "scripts/simulator.mjs"
+  },
   "scripts": {
+    "container:build": "docker build -t maintenance-data-simulator:local .",
+    "container:run:feed:dry-run": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --dry-run",
+    "container:run:generate": "docker run --rm maintenance-data-simulator:local generate --scenario baseline-week",
+    "container:smoke": "node scripts/container-smoke.mjs --image maintenance-data-simulator:local",
     "generate:scenarios": "node scripts/generate-scenario.mjs --all --out-dir scenarios",
     "guard": "node scripts/quality-guards.mjs all",
     "guard:artifacts": "node scripts/quality-guards.mjs artifacts",
     "guard:public-docs": "node scripts/quality-guards.mjs public-docs",
     "guard:secrets": "node scripts/quality-guards.mjs secrets",
+    "simulator": "node scripts/simulator.mjs",
     "test": "node --test",
     "test:contracts": "node --test tests/*.test.mjs",
     "test:scenario-smoke": "node scripts/scenario-smoke.mjs",

@@ -27,8 +27,17 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Run contract tests
+        run: node --test
+
       - name: Run quality guards
         run: node scripts/quality-guards.mjs all
 
       - name: Run scenario smoke
         run: node scripts/scenario-smoke.mjs
+
+      - name: Build container image
+        run: docker build -t maintenance-data-simulator:ci .
+
+      - name: Run container smoke
+        run: node scripts/container-smoke.mjs --image maintenance-data-simulator:ci

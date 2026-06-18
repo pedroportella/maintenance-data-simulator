@@ -22,6 +22,7 @@ This is a simulator for review and learning. It does not connect to any employer
 
 - [Scenarios](docs/scenarios.md)
 - [Event contracts](docs/event-contracts.md)
+- [Containerisation](docs/containerisation.md)
 - [HTTP feed mode](docs/http-feed-mode.md)
 - [AWS publish mode](docs/aws-publish-mode.md)
 - [Production-next](docs/production-next.md)
@@ -38,12 +39,15 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `schemas/payloads/crew-capacity-payload.schema.json`
 - `src/contracts/scenario-contract.mjs`
 - `src/scenarios/scenario-generator.mjs`
+- `scripts/simulator.mjs`
+- `scripts/container-smoke.mjs`
+- `Dockerfile`
 - `scripts/generate-scenario.mjs`
 - `scenarios/baseline-week.scenario.json`
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. HTTP feed and AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios and run HTTP feed dry-runs. Live HTTP feed and AWS publish commands remain planned execution modes.
 
 ## Generate Scenarios
 
@@ -53,10 +57,20 @@ node scripts/generate-scenario.mjs --list
 node scripts/generate-scenario.mjs baseline-week
 ```
 
+## Container Runner
+
+```bash
+npm run container:build
+npm run container:run:generate
+npm run container:run:feed:dry-run
+node scripts/container-smoke.mjs --image maintenance-data-simulator:local
+```
+
 ## Checks
 
 ```bash
 node --test
 node scripts/quality-guards.mjs all
 node scripts/scenario-smoke.mjs
+node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```

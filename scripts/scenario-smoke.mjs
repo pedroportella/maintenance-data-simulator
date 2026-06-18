@@ -8,8 +8,11 @@ const requiredFiles = [
   "README.md",
   "AGENTS.md",
   ".cursorrules",
+  ".dockerignore",
+  "Dockerfile",
   "docs/scenarios.md",
   "docs/event-contracts.md",
+  "docs/containerisation.md",
   "docs/http-feed-mode.md",
   "docs/aws-publish-mode.md",
   "docs/production-next.md",
@@ -22,6 +25,8 @@ const requiredFiles = [
   "src/contracts/scenario-contract.mjs",
   "src/scenarios/scenario-generator.mjs",
   "scripts/generate-scenario.mjs",
+  "scripts/simulator.mjs",
+  "scripts/container-smoke.mjs",
   "scenarios/baseline-week.scenario.json",
   "scenarios/event-window-conflict.scenario.json",
   "scenarios/parts-delay-replan.scenario.json"
@@ -30,12 +35,15 @@ const requiredFiles = [
 const requiredReadmeText = [
   "docs/scenarios.md",
   "docs/event-contracts.md",
+  "docs/containerisation.md",
   "docs/http-feed-mode.md",
   "docs/aws-publish-mode.md",
   "docs/production-next.md",
   "schemas/scenario-pack.schema.json",
   "scenarios/baseline-week.scenario.json",
   "scripts/generate-scenario.mjs",
+  "scripts/simulator.mjs",
+  "Dockerfile",
   "synthetic"
 ];
 
