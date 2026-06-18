@@ -1,0 +1,18 @@
+{
+  "name": "maintenance-data-simulator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "guard": "node scripts/quality-guards.mjs all",
+    "guard:artifacts": "node scripts/quality-guards.mjs artifacts",
+    "guard:public-docs": "node scripts/quality-guards.mjs public-docs",
+    "guard:secrets": "node scripts/quality-guards.mjs secrets",
+    "test:scenario-smoke": "node scripts/scenario-smoke.mjs",
+    "verify": "node scripts/quality-guards.mjs all && node scripts/scenario-smoke.mjs"
+  },
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "packageManager": "pnpm@10.18.3"
+}

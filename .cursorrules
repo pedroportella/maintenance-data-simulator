@@ -1,0 +1,6 @@
+This repository is Codex-first.
+
+Use AGENTS.md as the durable source of truth for agent instructions in this prototype.
+This file is retained only as a legacy compatibility pointer for tools that still look for .cursorrules.
+
+Do not duplicate the full instruction set here.

@@ -1,0 +1,26 @@
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+coverage/
+test-results/
+playwright-report/
+
+# Local config and secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Generated/local outputs
+generated/
+out/
+*.log
+
+# AWS/local tooling
+.aws/
+
+# IDE/OS
+.DS_Store
+.idea/
+.vscode/
