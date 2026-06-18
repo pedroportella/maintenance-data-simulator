@@ -95,9 +95,11 @@
       "required": [
         "readyWorkOrderSourceIds",
         "blockedWorkOrderSourceIds",
+        "deferredWorkOrderSourceIds",
         "rejectedEventIds",
         "duplicateEventIds",
-        "staleEventIds"
+        "staleEventIds",
+        "counts"
       ],
       "properties": {
         "readyWorkOrderSourceIds": {
@@ -107,6 +109,12 @@
           }
         },
         "blockedWorkOrderSourceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/sourceIdentifier"
+          }
+        },
+        "deferredWorkOrderSourceIds": {
           "type": "array",
           "items": {
             "$ref": "common.schema.json#/$defs/sourceIdentifier"
@@ -128,6 +136,34 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "readyWorkOrders",
+            "blockedWorkOrders",
+            "rejectedEvents",
+            "deferredWorkOrders"
+          ],
+          "properties": {
+            "readyWorkOrders": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "blockedWorkOrders": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rejectedEvents": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deferredWorkOrders": {
+              "type": "integer",
+              "minimum": 0
+            }
           }
         },
         "notes": {

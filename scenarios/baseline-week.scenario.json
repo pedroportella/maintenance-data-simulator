@@ -3,13 +3,13 @@
   "name": "Baseline weekly planning",
   "description": "Synthetic source-system-shaped maintenance events for a small weekly planning review.",
   "schemaVersion": "1.0",
-  "seed": "baseline-week:2026-01-15:contract-1",
+  "seed": "baseline-week:2026-01-15:scenario-2",
   "referenceTimeUtc": "2026-01-15T00:00:00Z",
   "sourceSystem": "synthetic-source",
   "apiImport": {
     "endpoint": "/api/v1/imports/maintenance-events",
     "importKind": "maintenance-events",
-    "batchIdempotencyKey": "baseline-week-2026-01-15-contract-1"
+    "batchIdempotencyKey": "baseline-week-a0540b6a"
   },
   "planningHorizon": {
     "startUtc": "2026-01-16T00:00:00Z",
@@ -17,15 +17,15 @@
   },
   "events": [
     {
-      "eventId": "evt-baseline-week-0001",
+      "eventId": "evt-baseline-week-a0540b6a-0001",
       "eventType": "WorkOrderCreated",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2000",
-      "correlationId": "corr-baseline-week-0001",
+      "correlationId": "corr-baseline-week-a0540b6a-0001",
       "occurredAt": "2026-01-15T00:01:00Z",
-      "publishedAt": "2026-01-15T00:01:15Z",
-      "idempotencyKey": "baseline-week:WO-2000:create:2026-01-15T00:01:00Z",
+      "publishedAt": "2026-01-15T00:01:08Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2000:create:2026-01-15T00:01:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2000",
@@ -53,15 +53,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0002",
+      "eventId": "evt-baseline-week-a0540b6a-0002",
       "eventType": "WorkOrderCreated",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2001",
-      "correlationId": "corr-baseline-week-0002",
+      "correlationId": "corr-baseline-week-a0540b6a-0002",
       "occurredAt": "2026-01-15T00:02:00Z",
       "publishedAt": "2026-01-15T00:02:12Z",
-      "idempotencyKey": "baseline-week:WO-2001:create:2026-01-15T00:02:00Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2001:create:2026-01-15T00:02:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2001",
@@ -113,15 +113,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0003",
+      "eventId": "evt-baseline-week-a0540b6a-0003",
       "eventType": "WorkOrderCreated",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2002",
-      "correlationId": "corr-baseline-week-0003",
+      "correlationId": "corr-baseline-week-a0540b6a-0003",
       "occurredAt": "2026-01-15T00:03:00Z",
-      "publishedAt": "2026-01-15T00:03:12Z",
-      "idempotencyKey": "baseline-week:WO-2002:create:2026-01-15T00:03:00Z",
+      "publishedAt": "2026-01-15T00:03:14Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2002:create:2026-01-15T00:03:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2002",
@@ -173,15 +173,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0004",
+      "eventId": "evt-baseline-week-a0540b6a-0004",
       "eventType": "WorkOrderUpdated",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2000",
-      "correlationId": "corr-baseline-week-0004",
+      "correlationId": "corr-baseline-week-a0540b6a-0004",
       "occurredAt": "2026-01-15T00:04:00Z",
-      "publishedAt": "2026-01-15T00:04:11Z",
-      "idempotencyKey": "baseline-week:WO-2000:update:stale:2026-01-15T00:04:00Z",
+      "publishedAt": "2026-01-15T00:04:13Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2000:update-stale:2026-01-15T00:04:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2000",
@@ -210,15 +210,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0005",
+      "eventId": "evt-baseline-week-a0540b6a-0005",
       "eventType": "WorkOrderCreated",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2000",
-      "correlationId": "corr-baseline-week-0005",
+      "correlationId": "corr-baseline-week-a0540b6a-0005",
       "occurredAt": "2026-01-15T00:05:00Z",
-      "publishedAt": "2026-01-15T00:05:10Z",
-      "idempotencyKey": "baseline-week:WO-2000:create:2026-01-15T00:01:00Z",
+      "publishedAt": "2026-01-15T00:05:15Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2000:create:2026-01-15T00:01:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2000",
@@ -247,15 +247,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0006",
+      "eventId": "evt-baseline-week-a0540b6a-0006",
       "eventType": "WorkOrderStatusChanged",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "WO-2001",
-      "correlationId": "corr-baseline-week-0006",
+      "correlationId": "corr-baseline-week-a0540b6a-0006",
       "occurredAt": "2026-01-15T00:06:00Z",
-      "publishedAt": "2026-01-15T00:06:14Z",
-      "idempotencyKey": "baseline-week:WO-2001:status:2026-01-15T00:06:00Z",
+      "publishedAt": "2026-01-15T00:06:12Z",
+      "idempotencyKey": "baseline-week:a0540b6a:WO-2001:status:2026-01-15T00:06:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "WO-2001",
@@ -300,15 +300,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0007",
+      "eventId": "evt-baseline-week-a0540b6a-0007",
       "eventType": "MajorEventWindowPublished",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "EVT-2000",
-      "correlationId": "corr-baseline-week-0007",
+      "correlationId": "corr-baseline-week-a0540b6a-0007",
       "occurredAt": "2026-01-15T00:07:00Z",
       "publishedAt": "2026-01-15T00:07:10Z",
-      "idempotencyKey": "baseline-week:EVT-2000:window:2026-01-15T00:07:00Z",
+      "idempotencyKey": "baseline-week:a0540b6a:EVT-2000:window:2026-01-15T00:07:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "EVT-2000",
@@ -332,15 +332,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0008",
+      "eventId": "evt-baseline-week-a0540b6a-0008",
       "eventType": "PartsAvailabilityChanged",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "PART-2000-WO-2000",
-      "correlationId": "corr-baseline-week-0008",
+      "correlationId": "corr-baseline-week-a0540b6a-0008",
       "occurredAt": "2026-01-15T00:08:00Z",
-      "publishedAt": "2026-01-15T00:08:08Z",
-      "idempotencyKey": "baseline-week:PART-2000-WO-2000:2026-01-15T00:08:00Z",
+      "publishedAt": "2026-01-15T00:08:15Z",
+      "idempotencyKey": "baseline-week:a0540b6a:PART-2000-WO-2000:parts:2026-01-15T00:08:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "PART-2000-WO-2000",
@@ -380,15 +380,15 @@
       }
     },
     {
-      "eventId": "evt-baseline-week-0009",
+      "eventId": "evt-baseline-week-a0540b6a-0009",
       "eventType": "CrewCapacityChanged",
       "schemaVersion": "1.0",
       "sourceSystem": "synthetic-source",
       "sourceRecordId": "CREW-MECH-2026-01-20",
-      "correlationId": "corr-baseline-week-0009",
+      "correlationId": "corr-baseline-week-a0540b6a-0009",
       "occurredAt": "2026-01-15T00:09:00Z",
-      "publishedAt": "2026-01-15T00:09:08Z",
-      "idempotencyKey": "baseline-week:CREW-MECH:2026-01-20",
+      "publishedAt": "2026-01-15T00:09:12Z",
+      "idempotencyKey": "baseline-week:a0540b6a:CREW-MECH-2026-01-20:crew:2026-01-15T00:09:00Z",
       "payload": {
         "sourceSystem": "synthetic-source",
         "sourceId": "CREW-MECH-2026-01-20",
@@ -412,11 +412,28 @@
     }
   ],
   "expectedOutcomes": {
-    "readyWorkOrderSourceIds": ["WO-2000"],
-    "blockedWorkOrderSourceIds": ["WO-2001"],
-    "rejectedEventIds": ["evt-baseline-week-0003"],
-    "duplicateEventIds": ["evt-baseline-week-0005"],
-    "staleEventIds": ["evt-baseline-week-0004"],
+    "readyWorkOrderSourceIds": [
+      "WO-2000"
+    ],
+    "blockedWorkOrderSourceIds": [
+      "WO-2001"
+    ],
+    "deferredWorkOrderSourceIds": [],
+    "rejectedEventIds": [
+      "evt-baseline-week-a0540b6a-0003"
+    ],
+    "duplicateEventIds": [
+      "evt-baseline-week-a0540b6a-0005"
+    ],
+    "staleEventIds": [
+      "evt-baseline-week-a0540b6a-0004"
+    ],
+    "counts": {
+      "readyWorkOrders": 1,
+      "blockedWorkOrders": 1,
+      "rejectedEvents": 1,
+      "deferredWorkOrders": 0
+    },
     "notes": [
       "The scenario intentionally includes one rejected event, one duplicate idempotency key and one stale update.",
       "The blocked work order should be imported for review but excluded from package recommendations."

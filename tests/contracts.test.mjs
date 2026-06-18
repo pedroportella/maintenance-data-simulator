@@ -13,6 +13,10 @@ import {
   validateMaintenanceEventEnvelope,
   validateScenarioPack
 } from "../src/contracts/scenario-contract.mjs";
+import {
+  generateScenarioPack,
+  listScenarioIds
+} from "../src/scenarios/scenario-generator.mjs";
 
 const schemaPaths = [
   "schemas/common.schema.json",
@@ -23,6 +27,7 @@ const schemaPaths = [
   "schemas/payloads/parts-availability-payload.schema.json",
   "schemas/payloads/crew-capacity-payload.schema.json"
 ];
+const scenarioIds = listScenarioIds();
 
 test("contract schemas are checked in and parse as draft schemas", async () => {
   const schemas = await Promise.all(schemaPaths.map(readJson));
@@ -57,37 +62,85 @@ test("payload schemas cover every initial event type", () => {
   assert.deepEqual(Object.keys(EVENT_PAYLOAD_SCHEMA_BY_TYPE).sort(), [...EVENT_TYPES].sort());
 });
 
-test("baseline scenario validates against the runtime contract", async () => {
-  const scenario = await readJson("scenarios/baseline-week.scenario.json");
-  const result = validateScenarioPack(scenario);
+test("checked-in scenarios validate against the runtime contract", async () => {
+  for (const scenarioId of scenarioIds) {
+    const scenario = await readScenario(scenarioId);
+    const result = validateScenarioPack(scenario);
 
-  assert.deepEqual(result.issues, []);
-  assert.equal(result.ok, true);
-  assert.equal(assertScenarioPack(scenario), scenario);
+    assert.deepEqual(result.issues, [], scenarioId);
+    assert.equal(result.ok, true, scenarioId);
+    assert.equal(assertScenarioPack(scenario), scenario, scenarioId);
+  }
 });
 
-test("baseline scenario validates against the checked-in scenario schema", async () => {
+test("checked-in scenarios validate against the checked-in scenario schema", async () => {
   const registry = await loadSchemaRegistry();
-  const scenario = await readJson("scenarios/baseline-week.scenario.json");
   const { schema, context } = registry.byPath.get("schemas/scenario-pack.schema.json");
-  const issues = validateJsonSchema(scenario, schema, context, registry);
 
-  assert.deepEqual(issues, []);
+  for (const scenarioId of scenarioIds) {
+    const scenario = await readScenario(scenarioId);
+    const issues = validateJsonSchema(scenario, schema, context, registry);
+
+    assert.deepEqual(issues, [], scenarioId);
+  }
+});
+
+test("checked-in scenarios match generated deterministic snapshots", async () => {
+  for (const scenarioId of scenarioIds) {
+    const checkedInScenario = await readScenario(scenarioId);
+    const generatedScenario = generateScenarioPack(scenarioId);
+
+    assert.deepEqual(checkedInScenario, generatedScenario, scenarioId);
+  }
+});
+
+test("same seed produces the same event ids and order", () => {
+  const first = generateScenarioPack("event-window-conflict", { seed: "stable-review-seed" });
+  const second = generateScenarioPack("event-window-conflict", { seed: "stable-review-seed" });
+  const differentSeed = generateScenarioPack("event-window-conflict", { seed: "different-review-seed" });
+
+  assert.deepEqual(
+    first.events.map((event) => event.eventId),
+    second.events.map((event) => event.eventId)
+  );
+  assert.deepEqual(
+    first.events.map((event) => event.eventType),
+    [
+      "WorkOrderCreated",
+      "WorkOrderCreated",
+      "MajorEventWindowPublished",
+      "MajorEventWindowPublished",
+      "CrewCapacityChanged",
+      "WorkOrderStatusChanged",
+      "WorkOrderUpdated",
+      "MajorEventWindowPublished"
+    ]
+  );
+  assert.notDeepEqual(
+    first.events.map((event) => event.eventId),
+    differentSeed.events.map((event) => event.eventId)
+  );
 });
 
 test("baseline scenario exercises deterministic contract outcomes", async () => {
-  const scenario = await readJson("scenarios/baseline-week.scenario.json");
+  const scenario = await readScenario("baseline-week");
   const summary = summarizeScenarioPack(scenario);
 
   assert.equal(summary.scenarioId, "baseline-week");
   assert.equal(summary.schemaVersion, CONTRACT_SCHEMA_VERSION);
-  assert.equal(summary.seed, "baseline-week:2026-01-15:contract-1");
+  assert.equal(summary.seed, "baseline-week:2026-01-15:scenario-2");
   assert.equal(summary.eventCount, 9);
   assert.equal(summary.dispositionCounts.accepted, 4);
   assert.equal(summary.dispositionCounts["accepted-blocked"], 2);
   assert.equal(summary.dispositionCounts.rejected, 1);
   assert.equal(summary.dispositionCounts["ignored-duplicate"], 1);
   assert.equal(summary.dispositionCounts["ignored-stale"], 1);
+  assert.deepEqual(summary.outcomeCounts, {
+    readyWorkOrders: 1,
+    blockedWorkOrders: 1,
+    rejectedEvents: 1,
+    deferredWorkOrders: 0
+  });
 
   for (const disposition of IMPORT_DISPOSITIONS) {
     assert.ok(summary.dispositionCounts[disposition] > 0, `${disposition} should be represented`);
@@ -99,18 +152,45 @@ test("baseline scenario exercises deterministic contract outcomes", async () => 
   }
 });
 
-test("baseline event envelopes validate individually", async () => {
-  const scenario = await readJson("scenarios/baseline-week.scenario.json");
+test("generated scenarios include planning edge cases", () => {
+  const eventWindow = generateScenarioPack("event-window-conflict");
+  const partsDelay = generateScenarioPack("parts-delay-replan");
 
-  for (const event of scenario.events) {
-    const result = validateMaintenanceEventEnvelope(event);
-    assert.deepEqual(result.issues, [], event.eventId);
-    assert.equal(result.ok, true);
+  assert.equal(eventWindow.expectedOutcomes.counts.deferredWorkOrders, 1);
+  assert.equal(partsDelay.expectedOutcomes.counts.blockedWorkOrders, 2);
+  assert.equal(partsDelay.expectedOutcomes.counts.rejectedEvents, 1);
+  assert.ok(
+    eventWindow.events.some((event) => event.eventType === "WorkOrderStatusChanged"),
+    "status-change events should be generated"
+  );
+  assert.ok(
+    partsDelay.events.some((event) =>
+      event.payload.validationIssues?.some((issue) => issue.code === "missing-work-center")
+    ),
+    "missing work-center context should be represented"
+  );
+  assert.ok(
+    partsDelay.events.some((event) =>
+      event.payload.validationIssues?.some((issue) => issue.code === "missing-priority")
+    ),
+    "missing priority context should be represented"
+  );
+});
+
+test("scenario event envelopes validate individually", async () => {
+  const scenarios = await Promise.all(scenarioIds.map(readScenario));
+
+  for (const scenario of scenarios) {
+    for (const event of scenario.events) {
+      const result = validateMaintenanceEventEnvelope(event);
+      assert.deepEqual(result.issues, [], event.eventId);
+      assert.equal(result.ok, true);
+    }
   }
 });
 
 test("runtime contract rejects mismatched duplicate and readiness expectations", async () => {
-  const scenario = await readJson("scenarios/baseline-week.scenario.json");
+  const scenario = await readScenario("baseline-week");
   const duplicateScenario = structuredClone(scenario);
   duplicateScenario.events[4].idempotencyKey = "unexpected-new-key";
   const duplicateResult = validateScenarioPack(duplicateScenario);
@@ -134,6 +214,10 @@ test("runtime contract rejects mismatched duplicate and readiness expectations",
 
 async function readJson(path) {
   return JSON.parse(await readFile(new URL(`../${path}`, import.meta.url), "utf8"));
+}
+
+async function readScenario(scenarioId) {
+  return readJson(`scenarios/${scenarioId}.scenario.json`);
 }
 
 async function loadSchemaRegistry() {
@@ -217,7 +301,11 @@ function visitJsonSchema(value, schema, context, registry, path, issues) {
     validateStringSchema(value, schema, path, issues);
   }
 
-  if (schema.type === "number" || (Array.isArray(schema.type) && typeof value === "number")) {
+  if (
+    schema.type === "number"
+    || schema.type === "integer"
+    || (Array.isArray(schema.type) && typeof value === "number")
+  ) {
     validateNumberSchema(value, schema, path, issues);
   }
 
@@ -324,6 +412,7 @@ function matchesJsonType(value, type) {
     if (candidate === "array") return Array.isArray(value);
     if (candidate === "object") return isPlainObject(value);
     if (candidate === "number") return typeof value === "number" && Number.isFinite(value);
+    if (candidate === "integer") return Number.isInteger(value);
     if (candidate === "string") return typeof value === "string";
     if (candidate === "boolean") return typeof value === "boolean";
     return false;

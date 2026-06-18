@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:scenarios": "node scripts/generate-scenario.mjs --all --out-dir scenarios",
     "guard": "node scripts/quality-guards.mjs all",
     "guard:artifacts": "node scripts/quality-guards.mjs artifacts",
     "guard:public-docs": "node scripts/quality-guards.mjs public-docs",

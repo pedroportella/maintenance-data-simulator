@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
 import { assertScenarioPack } from "../src/contracts/scenario-contract.mjs";
 
@@ -20,7 +20,11 @@ const requiredFiles = [
   "schemas/payloads/parts-availability-payload.schema.json",
   "schemas/payloads/crew-capacity-payload.schema.json",
   "src/contracts/scenario-contract.mjs",
-  "scenarios/baseline-week.scenario.json"
+  "src/scenarios/scenario-generator.mjs",
+  "scripts/generate-scenario.mjs",
+  "scenarios/baseline-week.scenario.json",
+  "scenarios/event-window-conflict.scenario.json",
+  "scenarios/parts-delay-replan.scenario.json"
 ];
 
 const requiredReadmeText = [
@@ -31,6 +35,7 @@ const requiredReadmeText = [
   "docs/production-next.md",
   "schemas/scenario-pack.schema.json",
   "scenarios/baseline-week.scenario.json",
+  "scripts/generate-scenario.mjs",
   "synthetic"
 ];
 
@@ -51,11 +56,18 @@ if (existsSync("README.md")) {
   }
 }
 
-if (existsSync("scenarios/baseline-week.scenario.json")) {
+const scenarioFiles = existsSync("scenarios")
+  ? readdirSync("scenarios")
+    .filter((entry) => entry.endsWith(".scenario.json"))
+    .map((entry) => `scenarios/${entry}`)
+    .sort()
+  : [];
+
+for (const scenarioFile of scenarioFiles) {
   try {
-    assertScenarioPack(JSON.parse(readFileSync("scenarios/baseline-week.scenario.json", "utf8")));
+    assertScenarioPack(JSON.parse(readFileSync(scenarioFile, "utf8")));
   } catch (error) {
-    failures.push(`baseline scenario contract is invalid: ${error.message}`);
+    failures.push(`${scenarioFile} contract is invalid: ${error.message}`);
   }
 }
 

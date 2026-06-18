@@ -28,7 +28,7 @@ This is a simulator for review and learning. It does not connect to any employer
 
 ## Current State
 
-The repository contains the first checked-in scenario and event contracts:
+The repository contains deterministic scenario generation, three checked-in scenario packs and event contracts:
 
 - `schemas/scenario-pack.schema.json`
 - `schemas/maintenance-event-envelope.schema.json`
@@ -37,9 +37,21 @@ The repository contains the first checked-in scenario and event contracts:
 - `schemas/payloads/parts-availability-payload.schema.json`
 - `schemas/payloads/crew-capacity-payload.schema.json`
 - `src/contracts/scenario-contract.mjs`
+- `src/scenarios/scenario-generator.mjs`
+- `scripts/generate-scenario.mjs`
 - `scenarios/baseline-week.scenario.json`
+- `scenarios/event-window-conflict.scenario.json`
+- `scenarios/parts-delay-replan.scenario.json`
 
-The current scenario is static and deterministic. HTTP feed and AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. HTTP feed and AWS publish commands remain planned execution modes.
+
+## Generate Scenarios
+
+```bash
+npm run generate:scenarios
+node scripts/generate-scenario.mjs --list
+node scripts/generate-scenario.mjs baseline-week
+```
 
 ## Checks
 

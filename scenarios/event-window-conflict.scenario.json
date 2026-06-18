@@ -1,0 +1,336 @@
+{
+  "scenarioId": "event-window-conflict",
+  "name": "Event window conflict",
+  "description": "Synthetic planning events with overlapping access windows and a deferred work order.",
+  "schemaVersion": "1.0",
+  "seed": "event-window-conflict:2026-02-02:scenario-2",
+  "referenceTimeUtc": "2026-02-02T00:00:00Z",
+  "sourceSystem": "synthetic-source",
+  "apiImport": {
+    "endpoint": "/api/v1/imports/maintenance-events",
+    "importKind": "maintenance-events",
+    "batchIdempotencyKey": "event-window-conflict-e4bd9ed5"
+  },
+  "planningHorizon": {
+    "startUtc": "2026-02-03T00:00:00Z",
+    "endUtc": "2026-02-17T00:00:00Z"
+  },
+  "events": [
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0001",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2100",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0001",
+      "occurredAt": "2026-02-02T00:01:00Z",
+      "publishedAt": "2026-02-02T00:01:10Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:WO-2100:create:2026-02-02T00:01:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2100",
+        "workOrderNumber": "WO-2100",
+        "title": "Align conveyor drive",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2100",
+        "functionalLocationSourceId": "FL-2100",
+        "requiredStartUtc": "2026-02-06T00:00:00Z",
+        "dueAtUtc": "2026-02-08T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 10,
+        "sourceUpdatedAtUtc": "2026-02-02T00:01:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0002",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2101",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0002",
+      "occurredAt": "2026-02-02T00:02:00Z",
+      "publishedAt": "2026-02-02T00:02:13Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:WO-2101:create:2026-02-02T00:02:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2101",
+        "workOrderNumber": "WO-2101",
+        "title": "Inspect heat exchanger bundle",
+        "workType": "inspection",
+        "priority": "medium",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2101",
+        "functionalLocationSourceId": "FL-2100",
+        "requiredStartUtc": "2026-02-06T12:00:00Z",
+        "dueAtUtc": "2026-02-10T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 12,
+        "sourceUpdatedAtUtc": "2026-02-02T00:02:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0003",
+      "eventType": "MajorEventWindowPublished",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "EVT-2100",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0003",
+      "occurredAt": "2026-02-02T00:03:00Z",
+      "publishedAt": "2026-02-02T00:03:13Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:EVT-2100:window:2026-02-02T00:03:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "EVT-2100",
+        "eventType": "access-window",
+        "title": "Access window alpha",
+        "severity": "high",
+        "assetSourceId": "ASSET-2100",
+        "functionalLocationSourceId": "FL-2100",
+        "startsAtUtc": "2026-02-06T00:00:00Z",
+        "endsAtUtc": "2026-02-07T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-02-02T00:03:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0004",
+      "eventType": "MajorEventWindowPublished",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "EVT-2101",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0004",
+      "occurredAt": "2026-02-02T00:04:00Z",
+      "publishedAt": "2026-02-02T00:04:11Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:EVT-2101:window:2026-02-02T00:04:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "EVT-2101",
+        "eventType": "access-window",
+        "title": "Overlapping access window",
+        "severity": "high",
+        "assetSourceId": "ASSET-2101",
+        "functionalLocationSourceId": "FL-2100",
+        "startsAtUtc": "2026-02-06T12:00:00Z",
+        "endsAtUtc": "2026-02-08T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-02-02T00:04:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0005",
+      "eventType": "CrewCapacityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "CREW-MECH-2026-02-06",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0005",
+      "occurredAt": "2026-02-02T00:05:00Z",
+      "publishedAt": "2026-02-02T00:05:15Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:CREW-MECH-2026-02-06:crew:2026-02-02T00:05:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "CREW-MECH-2026-02-06",
+        "crewId": "CREW-MECH",
+        "crewName": "Mechanical day crew",
+        "discipline": "mechanical",
+        "capacityDate": "2026-02-06",
+        "availableHours": 16,
+        "reservedHours": 20,
+        "sourceUpdatedAtUtc": "2026-02-02T00:05:00Z",
+        "sourceDataReadiness": {
+          "status": "NeedsReview",
+          "issueCode": "window-capacity-conflict",
+          "issueDetail": "Crew capacity needs review before both windowed jobs can be packaged.",
+          "validationIssues": [
+            {
+              "code": "window-capacity-conflict",
+              "severity": "warning",
+              "sourceField": "reservedHours",
+              "detail": "Reserved work exceeds the preferred capacity for the overlapping window."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "window-capacity-conflict",
+            "severity": "warning",
+            "sourceField": "reservedHours",
+            "detail": "Reserved work exceeds the preferred capacity for the overlapping window."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "NeedsReview"
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0006",
+      "eventType": "WorkOrderStatusChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2101",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0006",
+      "occurredAt": "2026-02-02T00:06:00Z",
+      "publishedAt": "2026-02-02T00:06:09Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:WO-2101:status:2026-02-02T00:06:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2101",
+        "workOrderNumber": "WO-2101",
+        "title": "Inspect heat exchanger bundle",
+        "workType": "inspection",
+        "priority": "medium",
+        "lifecycleStatus": "Deferred",
+        "assetSourceId": "ASSET-2101",
+        "functionalLocationSourceId": "FL-2100",
+        "requiredStartUtc": "2026-02-06T12:00:00Z",
+        "dueAtUtc": "2026-02-14T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 12,
+        "sourceUpdatedAtUtc": "2026-02-02T00:06:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready",
+        "reason": "Planner should defer conflicting work until a non-overlapping window is available."
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0007",
+      "eventType": "WorkOrderUpdated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2100",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0007",
+      "occurredAt": "2026-02-02T00:07:00Z",
+      "publishedAt": "2026-02-02T00:07:10Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:WO-2100:update-stale:2026-02-02T00:07:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2100",
+        "workOrderNumber": "WO-2100",
+        "title": "Align conveyor drive stale priority",
+        "workType": "corrective",
+        "priority": "medium",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2100",
+        "functionalLocationSourceId": "FL-2100",
+        "requiredStartUtc": "2026-02-06T00:00:00Z",
+        "dueAtUtc": "2026-02-09T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 10,
+        "sourceUpdatedAtUtc": "2026-02-01T23:50:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-stale",
+        "readiness": "Ready",
+        "reason": "Older source update should not override the ready work order."
+      }
+    },
+    {
+      "eventId": "evt-event-window-conflict-e4bd9ed5-0008",
+      "eventType": "MajorEventWindowPublished",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "EVT-2101",
+      "correlationId": "corr-event-window-conflict-e4bd9ed5-0008",
+      "occurredAt": "2026-02-02T00:08:00Z",
+      "publishedAt": "2026-02-02T00:08:10Z",
+      "idempotencyKey": "event-window-conflict:e4bd9ed5:EVT-2101:window:2026-02-02T00:04:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "EVT-2101",
+        "eventType": "access-window",
+        "title": "Overlapping access window",
+        "severity": "high",
+        "assetSourceId": "ASSET-2101",
+        "functionalLocationSourceId": "FL-2100",
+        "startsAtUtc": "2026-02-06T12:00:00Z",
+        "endsAtUtc": "2026-02-08T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-02-02T00:04:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-duplicate",
+        "readiness": "Ready",
+        "reason": "Repeated idempotency key should be ignored by import processing."
+      }
+    }
+  ],
+  "expectedOutcomes": {
+    "readyWorkOrderSourceIds": [
+      "WO-2100"
+    ],
+    "blockedWorkOrderSourceIds": [],
+    "deferredWorkOrderSourceIds": [
+      "WO-2101"
+    ],
+    "rejectedEventIds": [],
+    "duplicateEventIds": [
+      "evt-event-window-conflict-e4bd9ed5-0008"
+    ],
+    "staleEventIds": [
+      "evt-event-window-conflict-e4bd9ed5-0007"
+    ],
+    "counts": {
+      "readyWorkOrders": 1,
+      "blockedWorkOrders": 0,
+      "rejectedEvents": 0,
+      "deferredWorkOrders": 1
+    },
+    "notes": [
+      "The overlapping windows should make one work order a defer candidate for later planning tests.",
+      "The stale update and duplicate window event are included to keep import processing deterministic."
+    ]
+  }
+}

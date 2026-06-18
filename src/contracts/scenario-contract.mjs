@@ -82,6 +82,13 @@ const EXPECTATION_KEYS = new Set([
   "reason"
 ]);
 
+const EXPECTED_OUTCOME_COUNTS_KEYS = new Set([
+  "readyWorkOrders",
+  "blockedWorkOrders",
+  "rejectedEvents",
+  "deferredWorkOrders"
+]);
+
 const READINESS_KEYS = new Set([
   "status",
   "issueCode",
@@ -237,7 +244,8 @@ export function summarizeScenarioPack(scenarioPack) {
     seed: scenarioPack?.seed,
     eventCount: events.length,
     eventCounts,
-    dispositionCounts
+    dispositionCounts,
+    outcomeCounts: scenarioPack?.expectedOutcomes?.counts
   };
 }
 
@@ -499,25 +507,87 @@ function validateExpectedOutcomes(issues, path, expectedOutcomes) {
   const allowedKeys = new Set([
     "readyWorkOrderSourceIds",
     "blockedWorkOrderSourceIds",
+    "deferredWorkOrderSourceIds",
     "rejectedEventIds",
     "duplicateEventIds",
     "staleEventIds",
+    "counts",
     "notes"
   ]);
   rejectUnknownKeys(issues, path, expectedOutcomes, allowedKeys);
   requireStringArray(issues, `${path}.readyWorkOrderSourceIds`, expectedOutcomes.readyWorkOrderSourceIds);
   requireStringArray(issues, `${path}.blockedWorkOrderSourceIds`, expectedOutcomes.blockedWorkOrderSourceIds);
+  requireStringArray(
+    issues,
+    `${path}.deferredWorkOrderSourceIds`,
+    expectedOutcomes.deferredWorkOrderSourceIds
+  );
   requireStringArray(issues, `${path}.rejectedEventIds`, expectedOutcomes.rejectedEventIds);
   requireStringArray(issues, `${path}.duplicateEventIds`, expectedOutcomes.duplicateEventIds);
   requireStringArray(issues, `${path}.staleEventIds`, expectedOutcomes.staleEventIds);
+  validateExpectedOutcomeCounts(issues, `${path}.counts`, expectedOutcomes.counts, expectedOutcomes);
 
   if (expectedOutcomes.notes !== undefined) {
     requireStringArray(issues, `${path}.notes`, expectedOutcomes.notes);
   }
 }
 
+function validateExpectedOutcomeCounts(issues, path, counts, expectedOutcomes) {
+  if (!isPlainObject(counts)) {
+    addIssue(issues, path, "must be an object");
+    return;
+  }
+
+  rejectUnknownKeys(issues, path, counts, EXPECTED_OUTCOME_COUNTS_KEYS);
+  requireNonNegativeInteger(issues, `${path}.readyWorkOrders`, counts.readyWorkOrders);
+  requireNonNegativeInteger(issues, `${path}.blockedWorkOrders`, counts.blockedWorkOrders);
+  requireNonNegativeInteger(issues, `${path}.rejectedEvents`, counts.rejectedEvents);
+  requireNonNegativeInteger(issues, `${path}.deferredWorkOrders`, counts.deferredWorkOrders);
+  assertCountMatches(
+    issues,
+    `${path}.readyWorkOrders`,
+    counts.readyWorkOrders,
+    expectedOutcomes.readyWorkOrderSourceIds?.length
+  );
+  assertCountMatches(
+    issues,
+    `${path}.blockedWorkOrders`,
+    counts.blockedWorkOrders,
+    expectedOutcomes.blockedWorkOrderSourceIds?.length
+  );
+  assertCountMatches(
+    issues,
+    `${path}.rejectedEvents`,
+    counts.rejectedEvents,
+    expectedOutcomes.rejectedEventIds?.length
+  );
+  assertCountMatches(
+    issues,
+    `${path}.deferredWorkOrders`,
+    counts.deferredWorkOrders,
+    expectedOutcomes.deferredWorkOrderSourceIds?.length
+  );
+}
+
 function validateExpectedOutcomeReferences(issues, scenarioPack) {
   const eventIds = new Set(scenarioPack.events.map((event) => event.eventId));
+  const workOrderSourceIds = new Set(
+    scenarioPack.events
+      .filter((event) => WORK_ORDER_EVENT_TYPES.includes(event.eventType))
+      .map((event) => event.sourceRecordId)
+  );
+
+  for (const key of [
+    "readyWorkOrderSourceIds",
+    "blockedWorkOrderSourceIds",
+    "deferredWorkOrderSourceIds"
+  ]) {
+    for (const sourceId of scenarioPack.expectedOutcomes?.[key] ?? []) {
+      if (!workOrderSourceIds.has(sourceId)) {
+        addIssue(issues, `$.expectedOutcomes.${key}`, `references unknown work-order source id ${sourceId}`);
+      }
+    }
+  }
 
   for (const key of ["rejectedEventIds", "duplicateEventIds", "staleEventIds"]) {
     for (const eventId of scenarioPack.expectedOutcomes?.[key] ?? []) {
@@ -663,9 +733,23 @@ function requireNonNegativeNumber(issues, path, value) {
   }
 }
 
+function requireNonNegativeInteger(issues, path, value) {
+  if (!Number.isInteger(value) || value < 0) {
+    addIssue(issues, path, "must be a non-negative integer");
+  }
+}
+
 function optionalNonNegativeNumberOrNull(issues, path, value) {
   if (value === undefined || value === null) return;
   requireNonNegativeNumber(issues, path, value);
+}
+
+function assertCountMatches(issues, path, actual, expected) {
+  if (!Number.isInteger(actual) || !Number.isInteger(expected)) return;
+
+  if (actual !== expected) {
+    addIssue(issues, path, `must match the referenced outcome count ${expected}`);
+  }
 }
 
 function addIssue(issues, path, message) {

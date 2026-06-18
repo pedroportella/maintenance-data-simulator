@@ -1,0 +1,510 @@
+{
+  "scenarioId": "parts-delay-replan",
+  "name": "Parts delay replan",
+  "description": "Synthetic parts and planning-context changes that force a deferred package review.",
+  "schemaVersion": "1.0",
+  "seed": "parts-delay-replan:2026-03-10:scenario-2",
+  "referenceTimeUtc": "2026-03-10T00:00:00Z",
+  "sourceSystem": "synthetic-source",
+  "apiImport": {
+    "endpoint": "/api/v1/imports/maintenance-events",
+    "importKind": "maintenance-events",
+    "batchIdempotencyKey": "parts-delay-replan-e206d943"
+  },
+  "planningHorizon": {
+    "startUtc": "2026-03-11T00:00:00Z",
+    "endUtc": "2026-03-25T00:00:00Z"
+  },
+  "events": [
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0001",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0001",
+      "occurredAt": "2026-03-10T00:01:00Z",
+      "publishedAt": "2026-03-10T00:01:10Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2200:create:2026-03-10T00:01:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2200",
+        "workOrderNumber": "WO-2200",
+        "title": "Replace gearbox coupling",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2200",
+        "functionalLocationSourceId": "FL-2200",
+        "requiredStartUtc": "2026-03-14T00:00:00Z",
+        "dueAtUtc": "2026-03-16T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 9,
+        "sourceUpdatedAtUtc": "2026-03-10T00:01:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0002",
+      "eventType": "PartsAvailabilityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "PART-2200-WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0002",
+      "occurredAt": "2026-03-10T00:02:00Z",
+      "publishedAt": "2026-03-10T00:02:09Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:PART-2200-WO-2200:parts-unavailable:2026-03-10T00:02:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "PART-2200-WO-2200",
+        "workOrderSourceId": "WO-2200",
+        "partNumber": "KIT-2200",
+        "partName": "Coupling kit",
+        "availabilityStatus": "Unavailable",
+        "requiredQuantity": 2,
+        "availableQuantity": 0,
+        "neededByUtc": "2026-03-14T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-03-10T00:02:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "parts-unavailable",
+          "issueDetail": "Parts are not available for the planned start.",
+          "validationIssues": [
+            {
+              "code": "parts-unavailable",
+              "severity": "error",
+              "sourceField": "availabilityStatus",
+              "detail": "Required parts are not available for the planned start."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "parts-unavailable",
+            "severity": "error",
+            "sourceField": "availabilityStatus",
+            "detail": "Required parts are not available for the planned start."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted-blocked",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "parts-unavailable",
+            "severity": "error",
+            "sourceField": "availabilityStatus",
+            "detail": "Required parts are not available for the planned start."
+          }
+        ],
+        "reason": "The work order can be imported, but packaging should wait for available parts."
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0003",
+      "eventType": "WorkOrderStatusChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0003",
+      "occurredAt": "2026-03-10T00:03:00Z",
+      "publishedAt": "2026-03-10T00:03:09Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2200:status:2026-03-10T00:03:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2200",
+        "workOrderNumber": "WO-2200",
+        "title": "Replace gearbox coupling",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "Deferred",
+        "assetSourceId": "ASSET-2200",
+        "functionalLocationSourceId": "FL-2200",
+        "requiredStartUtc": "2026-03-14T00:00:00Z",
+        "dueAtUtc": "2026-03-21T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 9,
+        "sourceUpdatedAtUtc": "2026-03-10T00:03:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready",
+        "reason": "Planner decision should defer the work until the parts delay is resolved."
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0004",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2201",
+      "correlationId": "corr-parts-delay-replan-e206d943-0004",
+      "occurredAt": "2026-03-10T00:04:00Z",
+      "publishedAt": "2026-03-10T00:04:11Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2201:create:2026-03-10T00:04:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2201",
+        "workOrderNumber": "WO-2201",
+        "title": "Inspect auxiliary pump",
+        "workType": "inspection",
+        "priority": "medium",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": null,
+        "functionalLocationSourceId": "FL-2201",
+        "requiredStartUtc": "2026-03-15T00:00:00Z",
+        "dueAtUtc": "2026-03-19T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 5,
+        "sourceUpdatedAtUtc": "2026-03-10T00:04:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-equipment",
+          "issueDetail": "Equipment context is required before packaging.",
+          "validationIssues": [
+            {
+              "code": "missing-equipment",
+              "severity": "warning",
+              "sourceField": "assetSourceId",
+              "detail": "Equipment source id is not present in the event."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-equipment",
+            "severity": "warning",
+            "sourceField": "assetSourceId",
+            "detail": "Equipment source id is not present in the event."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted-blocked",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "missing-equipment",
+            "severity": "warning",
+            "sourceField": "assetSourceId",
+            "detail": "Equipment source id is not present in the event."
+          }
+        ]
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0005",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2202",
+      "correlationId": "corr-parts-delay-replan-e206d943-0005",
+      "occurredAt": "2026-03-10T00:05:00Z",
+      "publishedAt": "2026-03-10T00:05:15Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2202:create:2026-03-10T00:05:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2202",
+        "workOrderNumber": "WO-2202",
+        "title": "Service standby compressor",
+        "workType": "preventive",
+        "priority": "unassigned",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": "ASSET-2202",
+        "functionalLocationSourceId": "FL-2202",
+        "requiredStartUtc": "2026-03-18T00:00:00Z",
+        "dueAtUtc": "2026-03-24T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 6,
+        "sourceUpdatedAtUtc": "2026-03-10T00:05:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-planning-context",
+          "issueDetail": "Priority and work-center context are required before packaging.",
+          "validationIssues": [
+            {
+              "code": "missing-priority",
+              "severity": "warning",
+              "sourceField": "priority",
+              "detail": "Priority was not populated in the source extract."
+            },
+            {
+              "code": "missing-work-center",
+              "severity": "warning",
+              "sourceField": "workCenterSourceId",
+              "detail": "Work-center context is not present in the source extract."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-priority",
+            "severity": "warning",
+            "sourceField": "priority",
+            "detail": "Priority was not populated in the source extract."
+          },
+          {
+            "code": "missing-work-center",
+            "severity": "warning",
+            "sourceField": "workCenterSourceId",
+            "detail": "Work-center context is not present in the source extract."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted-blocked",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "missing-priority",
+            "severity": "warning",
+            "sourceField": "priority",
+            "detail": "Priority was not populated in the source extract."
+          },
+          {
+            "code": "missing-work-center",
+            "severity": "warning",
+            "sourceField": "workCenterSourceId",
+            "detail": "Work-center context is not present in the source extract."
+          }
+        ]
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0006",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2203",
+      "correlationId": "corr-parts-delay-replan-e206d943-0006",
+      "occurredAt": "2026-03-10T00:06:00Z",
+      "publishedAt": "2026-03-10T00:06:12Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2203:create:2026-03-10T00:06:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2203",
+        "workOrderNumber": "WO-2203",
+        "title": "Check cooling fan",
+        "workType": "inspection",
+        "priority": "medium",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": "ASSET-2203",
+        "functionalLocationSourceId": null,
+        "requiredStartUtc": "2026-03-17T00:00:00Z",
+        "dueAtUtc": "2026-03-20T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 3,
+        "sourceUpdatedAtUtc": "2026-03-10T00:06:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-functional-location",
+          "issueDetail": "Functional location is required before the event can be accepted.",
+          "validationIssues": [
+            {
+              "code": "missing-functional-location",
+              "severity": "error",
+              "sourceField": "functionalLocationSourceId",
+              "detail": "Functional location source id is not present."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-functional-location",
+            "severity": "error",
+            "sourceField": "functionalLocationSourceId",
+            "detail": "Functional location source id is not present."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "rejected",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "missing-functional-location",
+            "severity": "error",
+            "sourceField": "functionalLocationSourceId",
+            "detail": "Functional location source id is not present."
+          }
+        ]
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0007",
+      "eventType": "PartsAvailabilityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "PART-2200-WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0007",
+      "occurredAt": "2026-03-10T00:07:00Z",
+      "publishedAt": "2026-03-10T00:07:12Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:PART-2200-WO-2200:parts-available:2026-03-10T00:07:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "PART-2200-WO-2200",
+        "workOrderSourceId": "WO-2200",
+        "partNumber": "KIT-2200",
+        "partName": "Coupling kit",
+        "availabilityStatus": "Available",
+        "requiredQuantity": 2,
+        "availableQuantity": 2,
+        "neededByUtc": "2026-03-20T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-03-10T00:07:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0008",
+      "eventType": "CrewCapacityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "CREW-MECH-2026-03-20",
+      "correlationId": "corr-parts-delay-replan-e206d943-0008",
+      "occurredAt": "2026-03-10T00:08:00Z",
+      "publishedAt": "2026-03-10T00:08:13Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:CREW-MECH-2026-03-20:crew:2026-03-10T00:08:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "CREW-MECH-2026-03-20",
+        "crewId": "CREW-MECH",
+        "crewName": "Mechanical day crew",
+        "discipline": "mechanical",
+        "capacityDate": "2026-03-20",
+        "availableHours": 18,
+        "reservedHours": 10,
+        "sourceUpdatedAtUtc": "2026-03-10T00:08:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0009",
+      "eventType": "WorkOrderUpdated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0009",
+      "occurredAt": "2026-03-10T00:09:00Z",
+      "publishedAt": "2026-03-10T00:09:12Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:WO-2200:update-stale:2026-03-10T00:09:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2200",
+        "workOrderNumber": "WO-2200",
+        "title": "Replace gearbox coupling stale due date",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2200",
+        "functionalLocationSourceId": "FL-2200",
+        "requiredStartUtc": "2026-03-14T00:00:00Z",
+        "dueAtUtc": "2026-03-15T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 9,
+        "sourceUpdatedAtUtc": "2026-03-09T23:50:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-stale",
+        "readiness": "Ready",
+        "reason": "Out-of-order source update should not override the deferred work order state."
+      }
+    },
+    {
+      "eventId": "evt-parts-delay-replan-e206d943-0010",
+      "eventType": "PartsAvailabilityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "PART-2200-WO-2200",
+      "correlationId": "corr-parts-delay-replan-e206d943-0010",
+      "occurredAt": "2026-03-10T00:10:00Z",
+      "publishedAt": "2026-03-10T00:10:08Z",
+      "idempotencyKey": "parts-delay-replan:e206d943:PART-2200-WO-2200:parts-available:2026-03-10T00:07:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "PART-2200-WO-2200",
+        "workOrderSourceId": "WO-2200",
+        "partNumber": "KIT-2200",
+        "partName": "Coupling kit",
+        "availabilityStatus": "Available",
+        "requiredQuantity": 2,
+        "availableQuantity": 2,
+        "neededByUtc": "2026-03-20T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-03-10T00:07:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-duplicate",
+        "readiness": "Ready",
+        "reason": "Repeated parts update should be ignored by idempotent import processing."
+      }
+    }
+  ],
+  "expectedOutcomes": {
+    "readyWorkOrderSourceIds": [],
+    "blockedWorkOrderSourceIds": [
+      "WO-2201",
+      "WO-2202"
+    ],
+    "deferredWorkOrderSourceIds": [
+      "WO-2200"
+    ],
+    "rejectedEventIds": [
+      "evt-parts-delay-replan-e206d943-0006"
+    ],
+    "duplicateEventIds": [
+      "evt-parts-delay-replan-e206d943-0010"
+    ],
+    "staleEventIds": [
+      "evt-parts-delay-replan-e206d943-0009"
+    ],
+    "counts": {
+      "readyWorkOrders": 0,
+      "blockedWorkOrders": 2,
+      "rejectedEvents": 1,
+      "deferredWorkOrders": 1
+    },
+    "notes": [
+      "The unavailable parts event should block immediate packaging and the status change marks the work order as deferred.",
+      "The scenario includes missing equipment, priority and work-center context without using real source data."
+    ]
+  }
+}
