@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maintenance-data-simulator.local/schemas/payloads/crew-capacity-payload.schema.json",
+  "title": "Crew capacity payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sourceSystem",
+    "sourceId",
+    "crewId",
+    "crewName",
+    "discipline",
+    "capacityDate",
+    "availableHours",
+    "reservedHours",
+    "sourceUpdatedAtUtc",
+    "sourceDataReadiness"
+  ],
+  "properties": {
+    "sourceSystem": {
+      "$ref": "../common.schema.json#/$defs/sourceSystem"
+    },
+    "sourceId": {
+      "$ref": "../common.schema.json#/$defs/sourceIdentifier"
+    },
+    "crewId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "crewName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "discipline": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "capacityDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "availableHours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "reservedHours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "sourceUpdatedAtUtc": {
+      "$ref": "../common.schema.json#/$defs/isoDateTime"
+    },
+    "sourceDataReadiness": {
+      "$ref": "../common.schema.json#/$defs/sourceDataReadiness"
+    },
+    "validationIssues": {
+      "type": "array",
+      "items": {
+        "$ref": "../common.schema.json#/$defs/validationIssue"
+      },
+      "default": []
+    }
+  }
+}

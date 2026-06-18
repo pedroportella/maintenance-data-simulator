@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maintenance-data-simulator.local/schemas/payloads/parts-availability-payload.schema.json",
+  "title": "Parts availability payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sourceSystem",
+    "sourceId",
+    "workOrderSourceId",
+    "partNumber",
+    "partName",
+    "availabilityStatus",
+    "requiredQuantity",
+    "availableQuantity",
+    "neededByUtc",
+    "sourceUpdatedAtUtc",
+    "sourceDataReadiness"
+  ],
+  "properties": {
+    "sourceSystem": {
+      "$ref": "../common.schema.json#/$defs/sourceSystem"
+    },
+    "sourceId": {
+      "$ref": "../common.schema.json#/$defs/sourceIdentifier"
+    },
+    "workOrderSourceId": {
+      "$ref": "../common.schema.json#/$defs/sourceIdentifier"
+    },
+    "partNumber": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "partName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "availabilityStatus": {
+      "type": "string",
+      "enum": ["Available", "Constrained", "Unavailable"]
+    },
+    "requiredQuantity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "availableQuantity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "neededByUtc": {
+      "$ref": "../common.schema.json#/$defs/isoDateTime"
+    },
+    "sourceUpdatedAtUtc": {
+      "$ref": "../common.schema.json#/$defs/isoDateTime"
+    },
+    "sourceDataReadiness": {
+      "$ref": "../common.schema.json#/$defs/sourceDataReadiness"
+    },
+    "validationIssues": {
+      "type": "array",
+      "items": {
+        "$ref": "../common.schema.json#/$defs/validationIssue"
+      },
+      "default": []
+    }
+  }
+}

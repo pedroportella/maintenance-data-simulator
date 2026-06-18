@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maintenance-data-simulator.local/schemas/maintenance-event-envelope.schema.json",
+  "title": "Maintenance event envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "sourceSystem",
+    "sourceRecordId",
+    "correlationId",
+    "occurredAt",
+    "publishedAt",
+    "idempotencyKey",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "WorkOrderCreated",
+        "WorkOrderUpdated",
+        "WorkOrderStatusChanged",
+        "MajorEventWindowPublished",
+        "PartsAvailabilityChanged",
+        "CrewCapacityChanged"
+      ]
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "sourceSystem": {
+      "$ref": "common.schema.json#/$defs/sourceSystem"
+    },
+    "sourceRecordId": {
+      "$ref": "common.schema.json#/$defs/sourceIdentifier"
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "occurredAt": {
+      "$ref": "common.schema.json#/$defs/isoDateTime"
+    },
+    "publishedAt": {
+      "$ref": "common.schema.json#/$defs/isoDateTime"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}

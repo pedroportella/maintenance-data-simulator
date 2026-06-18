@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://maintenance-data-simulator.local/schemas/payloads/work-order-event-payload.schema.json",
+  "title": "Work order event payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sourceSystem",
+    "sourceId",
+    "workOrderNumber",
+    "title",
+    "workType",
+    "priority",
+    "lifecycleStatus",
+    "sourceDataReadiness",
+    "sourceUpdatedAtUtc"
+  ],
+  "properties": {
+    "sourceSystem": {
+      "$ref": "../common.schema.json#/$defs/sourceSystem"
+    },
+    "sourceId": {
+      "$ref": "../common.schema.json#/$defs/sourceIdentifier"
+    },
+    "workOrderNumber": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "workType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "priority": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "lifecycleStatus": {
+      "type": "string",
+      "enum": [
+        "Imported",
+        "ReadyForPlanning",
+        "Packaged",
+        "DecisionRecorded",
+        "Deferred",
+        "Closed"
+      ]
+    },
+    "assetSourceId": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "functionalLocationSourceId": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "requiredStartUtc": {
+      "anyOf": [
+        { "$ref": "../common.schema.json#/$defs/isoDateTime" },
+        { "type": "null" }
+      ]
+    },
+    "dueAtUtc": {
+      "anyOf": [
+        { "$ref": "../common.schema.json#/$defs/isoDateTime" },
+        { "type": "null" }
+      ]
+    },
+    "scheduledStartUtc": {
+      "anyOf": [
+        { "$ref": "../common.schema.json#/$defs/isoDateTime" },
+        { "type": "null" }
+      ]
+    },
+    "estimatedHours": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "sourceUpdatedAtUtc": {
+      "$ref": "../common.schema.json#/$defs/isoDateTime"
+    },
+    "sourceDataReadiness": {
+      "$ref": "../common.schema.json#/$defs/sourceDataReadiness"
+    },
+    "validationIssues": {
+      "type": "array",
+      "items": {
+        "$ref": "../common.schema.json#/$defs/validationIssue"
+      },
+      "default": []
+    }
+  }
+}

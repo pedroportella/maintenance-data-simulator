@@ -8,8 +8,10 @@
     "guard:artifacts": "node scripts/quality-guards.mjs artifacts",
     "guard:public-docs": "node scripts/quality-guards.mjs public-docs",
     "guard:secrets": "node scripts/quality-guards.mjs secrets",
+    "test": "node --test",
+    "test:contracts": "node --test tests/*.test.mjs",
     "test:scenario-smoke": "node scripts/scenario-smoke.mjs",
-    "verify": "node scripts/quality-guards.mjs all && node scripts/scenario-smoke.mjs"
+    "verify": "node --test && node scripts/quality-guards.mjs all && node scripts/scenario-smoke.mjs"
   },
   "engines": {
     "node": ">=22 <23"

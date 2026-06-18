@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
+import { assertScenarioPack } from "../src/contracts/scenario-contract.mjs";
 
 const requiredFiles = [
   "README.md",
@@ -11,7 +12,15 @@ const requiredFiles = [
   "docs/event-contracts.md",
   "docs/http-feed-mode.md",
   "docs/aws-publish-mode.md",
-  "docs/production-next.md"
+  "docs/production-next.md",
+  "schemas/scenario-pack.schema.json",
+  "schemas/maintenance-event-envelope.schema.json",
+  "schemas/payloads/work-order-event-payload.schema.json",
+  "schemas/payloads/major-event-window-payload.schema.json",
+  "schemas/payloads/parts-availability-payload.schema.json",
+  "schemas/payloads/crew-capacity-payload.schema.json",
+  "src/contracts/scenario-contract.mjs",
+  "scenarios/baseline-week.scenario.json"
 ];
 
 const requiredReadmeText = [
@@ -20,6 +29,8 @@ const requiredReadmeText = [
   "docs/http-feed-mode.md",
   "docs/aws-publish-mode.md",
   "docs/production-next.md",
+  "schemas/scenario-pack.schema.json",
+  "scenarios/baseline-week.scenario.json",
   "synthetic"
 ];
 
@@ -37,6 +48,14 @@ if (existsSync("README.md")) {
     if (!readme.includes(expected)) {
       failures.push(`README.md is missing expected simulator evidence: ${expected}`);
     }
+  }
+}
+
+if (existsSync("scenarios/baseline-week.scenario.json")) {
+  try {
+    assertScenarioPack(JSON.parse(readFileSync("scenarios/baseline-week.scenario.json", "utf8")));
+  } catch (error) {
+    failures.push(`baseline scenario contract is invalid: ${error.message}`);
   }
 }
 

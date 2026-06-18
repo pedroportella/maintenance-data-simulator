@@ -1,0 +1,425 @@
+{
+  "scenarioId": "baseline-week",
+  "name": "Baseline weekly planning",
+  "description": "Synthetic source-system-shaped maintenance events for a small weekly planning review.",
+  "schemaVersion": "1.0",
+  "seed": "baseline-week:2026-01-15:contract-1",
+  "referenceTimeUtc": "2026-01-15T00:00:00Z",
+  "sourceSystem": "synthetic-source",
+  "apiImport": {
+    "endpoint": "/api/v1/imports/maintenance-events",
+    "importKind": "maintenance-events",
+    "batchIdempotencyKey": "baseline-week-2026-01-15-contract-1"
+  },
+  "planningHorizon": {
+    "startUtc": "2026-01-16T00:00:00Z",
+    "endUtc": "2026-01-30T00:00:00Z"
+  },
+  "events": [
+    {
+      "eventId": "evt-baseline-week-0001",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2000",
+      "correlationId": "corr-baseline-week-0001",
+      "occurredAt": "2026-01-15T00:01:00Z",
+      "publishedAt": "2026-01-15T00:01:15Z",
+      "idempotencyKey": "baseline-week:WO-2000:create:2026-01-15T00:01:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2000",
+        "workOrderNumber": "WO-2000",
+        "title": "Replace pump seals",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2000",
+        "functionalLocationSourceId": "FL-2000",
+        "requiredStartUtc": "2026-01-20T00:00:00Z",
+        "dueAtUtc": "2026-01-24T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 8.5,
+        "sourceUpdatedAtUtc": "2026-01-15T00:00:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0002",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2001",
+      "correlationId": "corr-baseline-week-0002",
+      "occurredAt": "2026-01-15T00:02:00Z",
+      "publishedAt": "2026-01-15T00:02:12Z",
+      "idempotencyKey": "baseline-week:WO-2001:create:2026-01-15T00:02:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2001",
+        "workOrderNumber": "WO-2001",
+        "title": "Inspect standby valve",
+        "workType": "preventive",
+        "priority": "medium",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": "ASSET-2001",
+        "functionalLocationSourceId": "FL-2000",
+        "requiredStartUtc": "2026-01-22T00:00:00Z",
+        "dueAtUtc": "2026-01-29T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": null,
+        "sourceUpdatedAtUtc": "2026-01-15T00:01:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-estimate",
+          "issueDetail": "Estimated effort is required before packaging.",
+          "validationIssues": [
+            {
+              "code": "missing-estimate",
+              "severity": "warning",
+              "sourceField": "estimatedHours",
+              "detail": "Estimated effort is not present in the source event."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-estimate",
+            "severity": "warning",
+            "sourceField": "estimatedHours",
+            "detail": "Estimated effort is not present in the source event."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted-blocked",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "missing-estimate",
+            "severity": "warning",
+            "sourceField": "estimatedHours",
+            "detail": "Accepted for review, but blocked from packaging."
+          }
+        ]
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0003",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2002",
+      "correlationId": "corr-baseline-week-0003",
+      "occurredAt": "2026-01-15T00:03:00Z",
+      "publishedAt": "2026-01-15T00:03:12Z",
+      "idempotencyKey": "baseline-week:WO-2002:create:2026-01-15T00:03:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2002",
+        "workOrderNumber": "WO-2002",
+        "title": "Check auxiliary drive",
+        "workType": "inspection",
+        "priority": "medium",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": "ASSET-2002",
+        "functionalLocationSourceId": null,
+        "requiredStartUtc": "2026-01-23T00:00:00Z",
+        "dueAtUtc": "2026-01-28T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 4,
+        "sourceUpdatedAtUtc": "2026-01-15T00:02:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-functional-location",
+          "issueDetail": "Functional location is required before the event can be accepted.",
+          "validationIssues": [
+            {
+              "code": "missing-functional-location",
+              "severity": "error",
+              "sourceField": "functionalLocationSourceId",
+              "detail": "Functional location source id is not present."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-functional-location",
+            "severity": "error",
+            "sourceField": "functionalLocationSourceId",
+            "detail": "Functional location source id is not present."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "rejected",
+        "readiness": "Blocked",
+        "validationIssues": [
+          {
+            "code": "missing-functional-location",
+            "severity": "error",
+            "sourceField": "functionalLocationSourceId",
+            "detail": "Rejected before import because a required source field is missing."
+          }
+        ]
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0004",
+      "eventType": "WorkOrderUpdated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2000",
+      "correlationId": "corr-baseline-week-0004",
+      "occurredAt": "2026-01-15T00:04:00Z",
+      "publishedAt": "2026-01-15T00:04:11Z",
+      "idempotencyKey": "baseline-week:WO-2000:update:stale:2026-01-15T00:04:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2000",
+        "workOrderNumber": "WO-2000",
+        "title": "Replace pump seals",
+        "workType": "corrective",
+        "priority": "medium",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2000",
+        "functionalLocationSourceId": "FL-2000",
+        "requiredStartUtc": "2026-01-20T00:00:00Z",
+        "dueAtUtc": "2026-01-25T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 8.5,
+        "sourceUpdatedAtUtc": "2026-01-14T23:50:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-stale",
+        "readiness": "Ready",
+        "reason": "Older source update should not replace the accepted work order state."
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0005",
+      "eventType": "WorkOrderCreated",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2000",
+      "correlationId": "corr-baseline-week-0005",
+      "occurredAt": "2026-01-15T00:05:00Z",
+      "publishedAt": "2026-01-15T00:05:10Z",
+      "idempotencyKey": "baseline-week:WO-2000:create:2026-01-15T00:01:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2000",
+        "workOrderNumber": "WO-2000",
+        "title": "Replace pump seals",
+        "workType": "corrective",
+        "priority": "high",
+        "lifecycleStatus": "ReadyForPlanning",
+        "assetSourceId": "ASSET-2000",
+        "functionalLocationSourceId": "FL-2000",
+        "requiredStartUtc": "2026-01-20T00:00:00Z",
+        "dueAtUtc": "2026-01-24T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": 8.5,
+        "sourceUpdatedAtUtc": "2026-01-15T00:00:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "ignored-duplicate",
+        "readiness": "Ready",
+        "reason": "Repeated idempotency key should be ignored by import processing."
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0006",
+      "eventType": "WorkOrderStatusChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "WO-2001",
+      "correlationId": "corr-baseline-week-0006",
+      "occurredAt": "2026-01-15T00:06:00Z",
+      "publishedAt": "2026-01-15T00:06:14Z",
+      "idempotencyKey": "baseline-week:WO-2001:status:2026-01-15T00:06:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "WO-2001",
+        "workOrderNumber": "WO-2001",
+        "title": "Inspect standby valve",
+        "workType": "preventive",
+        "priority": "medium",
+        "lifecycleStatus": "Imported",
+        "assetSourceId": "ASSET-2001",
+        "functionalLocationSourceId": "FL-2000",
+        "requiredStartUtc": "2026-01-22T00:00:00Z",
+        "dueAtUtc": "2026-01-29T00:00:00Z",
+        "scheduledStartUtc": null,
+        "estimatedHours": null,
+        "sourceUpdatedAtUtc": "2026-01-15T00:06:00Z",
+        "sourceDataReadiness": {
+          "status": "Blocked",
+          "issueCode": "missing-estimate",
+          "issueDetail": "Estimated effort is required before packaging.",
+          "validationIssues": [
+            {
+              "code": "missing-estimate",
+              "severity": "warning",
+              "sourceField": "estimatedHours",
+              "detail": "Estimated effort is not present in the source event."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "missing-estimate",
+            "severity": "warning",
+            "sourceField": "estimatedHours",
+            "detail": "Estimated effort is not present in the source event."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted-blocked",
+        "readiness": "Blocked",
+        "reason": "Status changes can be accepted while the work remains blocked from packaging."
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0007",
+      "eventType": "MajorEventWindowPublished",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "EVT-2000",
+      "correlationId": "corr-baseline-week-0007",
+      "occurredAt": "2026-01-15T00:07:00Z",
+      "publishedAt": "2026-01-15T00:07:10Z",
+      "idempotencyKey": "baseline-week:EVT-2000:window:2026-01-15T00:07:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "EVT-2000",
+        "eventType": "access-window",
+        "title": "Shared access window",
+        "severity": "medium",
+        "assetSourceId": "ASSET-2000",
+        "functionalLocationSourceId": "FL-2000",
+        "startsAtUtc": "2026-01-20T00:00:00Z",
+        "endsAtUtc": "2026-01-21T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-01-15T00:07:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0008",
+      "eventType": "PartsAvailabilityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "PART-2000-WO-2000",
+      "correlationId": "corr-baseline-week-0008",
+      "occurredAt": "2026-01-15T00:08:00Z",
+      "publishedAt": "2026-01-15T00:08:08Z",
+      "idempotencyKey": "baseline-week:PART-2000-WO-2000:2026-01-15T00:08:00Z",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "PART-2000-WO-2000",
+        "workOrderSourceId": "WO-2000",
+        "partNumber": "KIT-2000",
+        "partName": "Seal kit",
+        "availabilityStatus": "Constrained",
+        "requiredQuantity": 1,
+        "availableQuantity": 1,
+        "neededByUtc": "2026-01-20T00:00:00Z",
+        "sourceUpdatedAtUtc": "2026-01-15T00:08:00Z",
+        "sourceDataReadiness": {
+          "status": "NeedsReview",
+          "issueCode": "constrained-parts",
+          "issueDetail": "Parts are available but constrained for the planning horizon.",
+          "validationIssues": [
+            {
+              "code": "constrained-parts",
+              "severity": "warning",
+              "sourceField": "availabilityStatus",
+              "detail": "Planner review is useful before package recommendation."
+            }
+          ]
+        },
+        "validationIssues": [
+          {
+            "code": "constrained-parts",
+            "severity": "warning",
+            "sourceField": "availabilityStatus",
+            "detail": "Planner review is useful before package recommendation."
+          }
+        ]
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "NeedsReview"
+      }
+    },
+    {
+      "eventId": "evt-baseline-week-0009",
+      "eventType": "CrewCapacityChanged",
+      "schemaVersion": "1.0",
+      "sourceSystem": "synthetic-source",
+      "sourceRecordId": "CREW-MECH-2026-01-20",
+      "correlationId": "corr-baseline-week-0009",
+      "occurredAt": "2026-01-15T00:09:00Z",
+      "publishedAt": "2026-01-15T00:09:08Z",
+      "idempotencyKey": "baseline-week:CREW-MECH:2026-01-20",
+      "payload": {
+        "sourceSystem": "synthetic-source",
+        "sourceId": "CREW-MECH-2026-01-20",
+        "crewId": "CREW-MECH",
+        "crewName": "Mechanical day crew",
+        "discipline": "mechanical",
+        "capacityDate": "2026-01-20",
+        "availableHours": 16,
+        "reservedHours": 8,
+        "sourceUpdatedAtUtc": "2026-01-15T00:09:00Z",
+        "sourceDataReadiness": {
+          "status": "Ready",
+          "validationIssues": []
+        },
+        "validationIssues": []
+      },
+      "expectation": {
+        "importDisposition": "accepted",
+        "readiness": "Ready"
+      }
+    }
+  ],
+  "expectedOutcomes": {
+    "readyWorkOrderSourceIds": ["WO-2000"],
+    "blockedWorkOrderSourceIds": ["WO-2001"],
+    "rejectedEventIds": ["evt-baseline-week-0003"],
+    "duplicateEventIds": ["evt-baseline-week-0005"],
+    "staleEventIds": ["evt-baseline-week-0004"],
+    "notes": [
+      "The scenario intentionally includes one rejected event, one duplicate idempotency key and one stale update.",
+      "The blocked work order should be imported for review but excluded from package recommendations."
+    ]
+  }
+}

@@ -28,11 +28,23 @@ This is a simulator for review and learning. It does not connect to any employer
 
 ## Current State
 
-Foundation guardrails only. Scenario generation will be added in later stages.
+The repository contains the first checked-in scenario and event contracts:
+
+- `schemas/scenario-pack.schema.json`
+- `schemas/maintenance-event-envelope.schema.json`
+- `schemas/payloads/work-order-event-payload.schema.json`
+- `schemas/payloads/major-event-window-payload.schema.json`
+- `schemas/payloads/parts-availability-payload.schema.json`
+- `schemas/payloads/crew-capacity-payload.schema.json`
+- `src/contracts/scenario-contract.mjs`
+- `scenarios/baseline-week.scenario.json`
+
+The current scenario is static and deterministic. HTTP feed and AWS publish commands remain planned execution modes.
 
 ## Checks
 
 ```bash
+node --test
 node scripts/quality-guards.mjs all
 node scripts/scenario-smoke.mjs
 ```
