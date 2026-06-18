@@ -35,4 +35,4 @@ The `parts-delay-replan` fixture covers unavailable and later available parts, a
 
 Each generated pack includes `expectedOutcomes.counts` for ready, blocked, rejected and deferred planner-facing results.
 
-Scenario packs include an `apiImport` block with the planned endpoint, import kind and batch idempotency key. This keeps the contract aligned with the future local HTTP feed without claiming real source-system access.
+Scenario packs include an `apiImport` block with the local endpoint, import kind and batch idempotency key. This keeps the contract aligned with local HTTP feed mode without claiming real source-system access.

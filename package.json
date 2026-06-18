@@ -9,6 +9,7 @@
   },
   "scripts": {
     "container:build": "docker build -t maintenance-data-simulator:local .",
+    "container:run:feed": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000",
     "container:run:feed:dry-run": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --dry-run",
     "container:run:generate": "docker run --rm maintenance-data-simulator:local generate --scenario baseline-week",
     "container:smoke": "node scripts/container-smoke.mjs --image maintenance-data-simulator:local",

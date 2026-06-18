@@ -47,7 +47,7 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios and run HTTP feed dry-runs. Live HTTP feed and AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs and post deterministic synthetic batches to a local API. AWS publish commands remain planned execution modes.
 
 ## Generate Scenarios
 
@@ -63,8 +63,11 @@ node scripts/generate-scenario.mjs baseline-week
 npm run container:build
 npm run container:run:generate
 npm run container:run:feed:dry-run
+npm run container:run:feed
 node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```
+
+The live container feed command expects the local API to be reachable from the container. It posts to the maintenance-event import endpoint using scenario batch idempotency keys and an HTTP correlation id.
 
 ## Checks
 

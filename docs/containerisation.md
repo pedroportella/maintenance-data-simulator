@@ -1,6 +1,6 @@
 # Containerisation
 
-The simulator image packages the same deterministic synthetic scenario runner used by local checks and review smoke paths. It is a short-lived CLI container: it writes output, logs structured JSON for feed dry-runs and exits with a clear status code.
+The simulator image packages the same deterministic synthetic scenario runner used by local checks and review smoke paths. It is a short-lived CLI container: it writes output, logs structured JSON for feed runs and exits with a clear status code.
 
 ## Build
 
@@ -27,7 +27,16 @@ docker run --rm maintenance-data-simulator:local feed --scenario baseline-week -
 npm run container:run:feed:dry-run
 ```
 
-Dry-run mode validates and summarises the scenario without posting to an API. Non-dry-run HTTP feed execution is intentionally left for the later local feed implementation.
+Dry-run mode validates and summarises the scenario without posting to an API.
+
+## Local HTTP Feed
+
+```bash
+docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000
+npm run container:run:feed
+```
+
+Live feed mode posts deterministic synthetic maintenance-event batches to the local API import endpoint. It uses scenario batch idempotency keys, an HTTP correlation id and retry/backoff for network failures or retryable HTTP responses. The command exits non-zero when the API returns a contract, idempotency or persistence error.
 
 For local host access, Docker Desktop usually supports `host.docker.internal`. Linux setups may need an explicit host gateway or a compose network. The dry-run command does not need the target API to be running.
 

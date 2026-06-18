@@ -34,4 +34,4 @@ Payloads include `sourceSystem`, `sourceId`, `sourceUpdatedAtUtc`, `sourceDataRe
 
 Scenario events also carry an `expectation` block for deterministic review. The supported import dispositions are `accepted`, `accepted-blocked`, `rejected`, `ignored-duplicate` and `ignored-stale`.
 
-The future local import path is `/api/v1/imports/maintenance-events`. The simulator does not claim live source-system connectivity; all events are synthetic.
+The local HTTP feed path is `/api/v1/imports/maintenance-events`. The simulator does not claim live source-system connectivity; all events are synthetic.
