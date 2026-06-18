@@ -13,7 +13,7 @@ Durable repo guidance for the maintenance-data-simulator prototype.
 
 - This is a neutral source-system simulator for maintenance-planning workflows.
 - Use synthetic data only.
-- Do not use company branding, industry-specific language, real client data, real SAP access or production-infrastructure claims.
+- Do not use company branding, industry-specific language, real client data, real source-system access or production-infrastructure claims.
 - This repo does not own persistence, planning recommendations or API authorization.
 
 ## Simulator Rules

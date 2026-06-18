@@ -18,6 +18,10 @@ const generatedPathRules = [
 const publicDocForbiddenPatterns = [
   { label: "private ai-notes path", pattern: /ai-notes\//i },
   { label: "private stage label", pattern: /\b[A-Z]\d{1,3}\b/ },
+  { label: "company branding", pattern: /\bBHP\b/i },
+  { label: "industry-specific wording", pattern: /\bmining\b/i },
+  { label: "vendor-specific source-system wording", pattern: /\bSAP\b|\bsap-work-orders\b/i },
+  { label: "old web app name", pattern: /\breviewer-console\b/i },
   { label: "AWS access key", pattern: /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/ },
   { label: "AWS account ARN", pattern: /arn:aws:iam::\d{12}:/ },
   { label: "local env file path", pattern: /(^|[`'\s])\.env(?!\.example|\.local\.example)\b/ },
@@ -85,7 +89,7 @@ function checkArtifacts() {
 function checkPublicDocs() {
   const publicDocs = listFiles(root).filter((filePath) => {
     const rel = relativePath(filePath);
-    return rel === "README.md" || (rel.startsWith("docs/") && rel.endsWith(".md"));
+    return rel === "README.md" || rel === "AGENTS.md" || (rel.startsWith("docs/") && rel.endsWith(".md"));
   });
   const failures = [];
 
@@ -94,6 +98,10 @@ function checkPublicDocs() {
     const contents = readText(filePath);
 
     for (const forbidden of publicDocForbiddenPatterns) {
+      if (rel === "AGENTS.md" && forbidden.label === "private ai-notes path") {
+        continue;
+      }
+
       if (forbidden.pattern.test(contents)) {
         failures.push(`${rel} contains ${forbidden.label}`);
       }

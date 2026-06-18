@@ -6,7 +6,7 @@ Neutral source-system simulator for the maintenance-planning API prototype.
 
 This repository will generate deterministic synthetic maintenance data:
 
-- SAP-shaped work-order events;
+- source-system-shaped work-order events;
 - asset and functional-location context;
 - major event windows;
 - parts availability and crew capacity changes;
@@ -16,7 +16,7 @@ It supports local HTTP feed mode first, then AWS EventBridge publish mode.
 
 ## Boundary
 
-This is a simulator for review and learning. It does not connect to any employer, client or production SAP system. It does not own persistence, planning recommendations, API authorization or production data.
+This is a simulator for review and learning. It does not connect to any employer, client or production source system. It does not own persistence, planning recommendations, API authorization or production data.
 
 ## Start Here
 
