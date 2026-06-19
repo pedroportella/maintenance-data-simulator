@@ -47,7 +47,7 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API with an optional synthetic bearer token and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API with an optional synthetic bearer token, publish deterministic synthetic events to EventBridge with explicit confirmation and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. A live deployed EventBridge/SQS/worker smoke still needs review infrastructure.
 
 ## Generate Scenarios
 
@@ -80,6 +80,15 @@ simulator api-smoke --scenario baseline-week
 ```
 
 The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It reads `SIMULATOR_API_TOKEN` or `--api-token` when the local API protects `/api/v1` routes. It checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
+
+## AWS Publish Mode
+
+```bash
+simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
+simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --aws-profile review --confirm-aws-publish
+```
+
+The command publishes one EventBridge entry per deterministic synthetic scenario event using the `maintenance-data-simulator` source and `MaintenanceEvent` detail type. It refuses live publishing without `--confirm-aws-publish`, an event bus name, a region and an explicit credential source hint. Credentials and profile names are not written to structured logs.
 
 ## Checks
 

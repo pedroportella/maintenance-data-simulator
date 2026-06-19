@@ -9,6 +9,14 @@ import {
   summarizeScenarioPack
 } from "../src/contracts/scenario-contract.mjs";
 import {
+  DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
+  DEFAULT_EVENTBRIDGE_SOURCE,
+  EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST,
+  EventBridgePublishError,
+  createEventBridgeClient,
+  publishScenarioPackToEventBridge
+} from "../src/aws/eventbridge-publisher.mjs";
+import {
   runApiScenarioSmoke
 } from "../src/api/api-scenario-smoke.mjs";
 import { loadLocalEnv } from "./env-loader.mjs";
@@ -24,6 +32,9 @@ const DEFAULT_FEED_MAX_RETRIES = 2;
 const DEFAULT_FEED_RETRY_DELAY_MS = 250;
 const DEFAULT_FEED_TIMEOUT_MS = 10_000;
 const RETRYABLE_HTTP_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const AWS_REGION_MAX_LENGTH = 80;
+const AWS_PROFILE_MAX_LENGTH = 160;
+const EVENT_BUS_NAME_MAX_LENGTH = 256;
 
 export async function runSimulatorCli(argv, io = defaultIo()) {
   const [command, ...commandArgs] = argv;
@@ -48,6 +59,10 @@ export async function runSimulatorCli(argv, io = defaultIo()) {
 
   if (command === "api-smoke") {
     return runApiScenarioSmoke(commandArgs, io);
+  }
+
+  if (command === "publish-aws") {
+    return runPublishAws(commandArgs, io);
   }
 
   throw new CliError(`Unknown command: ${command}`);
@@ -209,6 +224,117 @@ async function runFeed(argv, io) {
   });
 
   return 0;
+}
+
+async function runPublishAws(argv, io) {
+  const args = parseOptions(argv, {
+    booleanOptions: new Set(["help", "confirm-aws-publish"]),
+    stringOptions: new Set([
+      "scenario",
+      "seed",
+      "event-bus-name",
+      "aws-region",
+      "aws-profile",
+      "batch-size"
+    ])
+  });
+
+  if (args.options.help) {
+    printPublishAwsUsage(io.stdout);
+    return 0;
+  }
+
+  if (!args.options["confirm-aws-publish"]) {
+    throw new CliError("publish-aws requires --confirm-aws-publish");
+  }
+
+  const scenarioId = getScenarioId(args);
+  const eventBusName = getEventBusName(args, io);
+  const awsRegion = getAwsRegion(args, io);
+  const awsProfile = getAwsProfile(args, io);
+
+  assertAwsCredentialConfig(io.env, awsProfile);
+
+  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.options.seed });
+  const summary = summarizeScenarioPack(scenarioPack);
+  const batchSize = parseIntegerOption(args.options["batch-size"], "--batch-size", {
+    defaultValue: EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST,
+    min: 1
+  });
+
+  if (batchSize > EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST) {
+    throw new CliError(`--batch-size must be ${EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST} or fewer`);
+  }
+
+  writeLog(io.stdout, {
+    level: "info",
+    command: "publish-aws",
+    message: "aws-publish-started",
+    scenarioId,
+    mode: "eventbridge",
+    eventBusName,
+    awsRegion,
+    eventSource: DEFAULT_EVENTBRIDGE_SOURCE,
+    detailType: DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
+    profileConfigured: Boolean(awsProfile),
+    credentialSourceConfigured: true,
+    eventCount: summary.eventCount,
+    batchCount: Math.ceil(summary.eventCount / batchSize),
+    batchSize
+  });
+
+  const client = io.eventBridgeClient ?? createEventBridgeClient({
+    region: awsRegion,
+    profile: awsProfile
+  });
+
+  try {
+    const publishSummary = await publishScenarioPackToEventBridge({
+      client,
+      scenarioPack,
+      eventBusName,
+      batchSize,
+      onBatchResult: (batch) => {
+        writeLog(io.stdout, {
+          level: batch.failedCount > 0 ? "error" : "info",
+          command: "publish-aws",
+          message: batch.failedCount > 0 ? "aws-publish-batch-failed" : "aws-publish-batch-completed",
+          scenarioId,
+          mode: "eventbridge",
+          eventBusName,
+          awsRegion,
+          batchNumber: batch.batchNumber,
+          batchCount: batch.batchCount,
+          eventCount: batch.eventCount,
+          publishedCount: batch.publishedCount,
+          failedCount: batch.failedCount,
+          failedEntries: batch.failedEntries
+        });
+      }
+    });
+
+    writeLog(io.stdout, {
+      level: "info",
+      command: "publish-aws",
+      message: "aws-publish-completed",
+      scenarioId,
+      mode: "eventbridge",
+      eventBusName,
+      awsRegion,
+      summary: publishSummary
+    });
+
+    return 0;
+  } catch (error) {
+    writeAwsPublishFailure(io.stdout, {
+      scenarioId,
+      eventBusName,
+      awsRegion,
+      error
+    });
+
+    throw new CliError(buildAwsPublishFailureMessage(error));
+  }
 }
 
 export function createMaintenanceEventFeedBatches(scenarioPack, options = {}) {
@@ -545,6 +671,55 @@ function getApiToken(args, io) {
   return cleanOptionalString(args.options["api-token"] ?? io.env.SIMULATOR_API_TOKEN, 4096);
 }
 
+function getEventBusName(args, io) {
+  const eventBusName = cleanOptionalString(
+    args.options["event-bus-name"] ?? io.env.SIMULATOR_EVENT_BUS_NAME,
+    EVENT_BUS_NAME_MAX_LENGTH
+  );
+
+  if (!eventBusName) {
+    throw new CliError("publish-aws requires --event-bus-name or SIMULATOR_EVENT_BUS_NAME");
+  }
+
+  return eventBusName;
+}
+
+function getAwsRegion(args, io) {
+  const awsRegion = cleanOptionalString(
+    args.options["aws-region"] ?? io.env.SIMULATOR_AWS_REGION ?? io.env.AWS_REGION ?? io.env.AWS_DEFAULT_REGION,
+    AWS_REGION_MAX_LENGTH
+  );
+
+  if (!awsRegion) {
+    throw new CliError("publish-aws requires --aws-region, SIMULATOR_AWS_REGION, AWS_REGION or AWS_DEFAULT_REGION");
+  }
+
+  return awsRegion;
+}
+
+function getAwsProfile(args, io) {
+  return cleanOptionalString(
+    args.options["aws-profile"] ?? io.env.SIMULATOR_AWS_PROFILE ?? io.env.AWS_PROFILE,
+    AWS_PROFILE_MAX_LENGTH
+  );
+}
+
+function assertAwsCredentialConfig(env, awsProfile) {
+  if (awsProfile) return;
+
+  const hasEnvironmentKeys = Boolean(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY);
+  const hasContainerCredentials = Boolean(
+    env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI || env.AWS_CONTAINER_CREDENTIALS_FULL_URI
+  );
+  const hasWebIdentity = Boolean(env.AWS_WEB_IDENTITY_TOKEN_FILE && env.AWS_ROLE_ARN);
+
+  if (hasEnvironmentKeys || hasContainerCredentials || hasWebIdentity) return;
+
+  throw new CliError(
+    "publish-aws requires AWS credentials from --aws-profile, AWS_PROFILE, task role or environment variables"
+  );
+}
+
 function authorizationHeader(apiToken) {
   return apiToken ? { authorization: `Bearer ${apiToken}` } : {};
 }
@@ -676,6 +851,54 @@ function sleep(delayMs) {
   });
 }
 
+function writeAwsPublishFailure(stream, { scenarioId, eventBusName, awsRegion, error }) {
+  if (error instanceof EventBridgePublishError) {
+    writeLog(stream, {
+      level: "error",
+      command: "publish-aws",
+      message: "aws-publish-failed",
+      scenarioId,
+      mode: "eventbridge",
+      eventBusName,
+      awsRegion,
+      batch: error.batchSummary,
+      summary: error.summary
+    });
+    return;
+  }
+
+  writeLog(stream, {
+    level: "error",
+    command: "publish-aws",
+    message: "aws-publish-request-failed",
+    scenarioId,
+    mode: "eventbridge",
+    eventBusName,
+    awsRegion,
+    error: summarizeAwsError(error)
+  });
+}
+
+function buildAwsPublishFailureMessage(error) {
+  if (error instanceof EventBridgePublishError) {
+    return `AWS publish failed for batch ${error.batchSummary.batchNumber}/${error.batchSummary.batchCount}`;
+  }
+
+  const summary = summarizeAwsError(error);
+  const status = summary.httpStatusCode ? ` (${summary.httpStatusCode})` : "";
+
+  return `AWS publish request failed: ${summary.name}${status}`;
+}
+
+function summarizeAwsError(error) {
+  return {
+    name: cleanOptionalString(error?.name ?? "Error", 80),
+    httpStatusCode: Number.isInteger(error?.$metadata?.httpStatusCode)
+      ? error.$metadata.httpStatusCode
+      : undefined
+  };
+}
+
 function writeLog(stream, entry) {
   stream.write(`${JSON.stringify({
     timestamp: new Date().toISOString(),
@@ -689,6 +912,7 @@ function printUsage(stream) {
   simulator feed --scenario baseline-week --api-url http://localhost:5000 --dry-run
   simulator feed --scenario baseline-week --api-url http://localhost:5000
   simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
+  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
   simulator --list
   simulator --help
 
@@ -696,6 +920,7 @@ Commands:
   generate   Write a deterministic synthetic scenario pack.
   feed       Validate, preview or post a deterministic synthetic scenario feed.
   api-smoke  Feed a scenario to the local API and verify planning recommendations.
+  publish-aws Publish a deterministic synthetic scenario to EventBridge.
 `);
 }
 
@@ -722,6 +947,22 @@ Options:
   --timeout-ms value      Per-request timeout. Default: ${DEFAULT_FEED_TIMEOUT_MS}.
   --correlation-id value  HTTP correlation id for this simulator run.
   --api-token value       Bearer token for protected local API routes.
+`);
+}
+
+function printPublishAwsUsage(stream) {
+  stream.write(`Usage:
+  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
+  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --aws-profile review --confirm-aws-publish
+
+Environment:
+  SIMULATOR_EVENT_BUS_NAME may provide the EventBridge bus name when --event-bus-name is omitted.
+  SIMULATOR_AWS_REGION, AWS_REGION or AWS_DEFAULT_REGION may provide the AWS region.
+  SIMULATOR_AWS_PROFILE or AWS_PROFILE may provide a named AWS profile.
+
+Options:
+  --confirm-aws-publish  Required confirmation for live EventBridge publishing.
+  --batch-size value     Number of events per PutEvents request. Default: ${EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST}.
 `);
 }
 

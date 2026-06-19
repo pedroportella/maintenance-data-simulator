@@ -49,6 +49,153 @@ test("feed dry-run emits structured logs without raw credential-like URL parts",
   assert.equal(logs[1].summary.scenarioId, "baseline-week");
 });
 
+test("publish-aws refuses to publish without explicit confirmation", () => {
+  const result = runCli([
+    "publish-aws",
+    "--scenario",
+    "baseline-week",
+    "--event-bus-name",
+    "review-events",
+    "--aws-region",
+    "ap-southeast-2"
+  ]);
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /publish-aws requires --confirm-aws-publish/);
+});
+
+test("publish-aws refuses to publish without EventBridge config", async () => {
+  const io = createMockIo(undefined, {
+    env: {
+      SIMULATOR_AWS_REGION: "ap-southeast-2",
+      AWS_ACCESS_KEY_ID: "fake-access-key",
+      AWS_SECRET_ACCESS_KEY: "fake-secret-key"
+    },
+    eventBridgeClient: createMockEventBridgeClient()
+  });
+
+  await assert.rejects(
+    () => runSimulatorCli([
+      "publish-aws",
+      "--scenario",
+      "baseline-week",
+      "--confirm-aws-publish"
+    ], io),
+    /publish-aws requires --event-bus-name or SIMULATOR_EVENT_BUS_NAME/
+  );
+});
+
+test("publish-aws sends EventBridge entries without simulator-only expectations or credentials in logs", async () => {
+  const commands = [];
+  const eventBridgeClient = createMockEventBridgeClient((command) => {
+    commands.push(command);
+
+    return {
+      FailedEntryCount: 0,
+      Entries: command.input.Entries.map((entry, index) => ({
+        EventId: `${entry.DetailType}-${commands.length}-${index}`
+      }))
+    };
+  });
+  const io = createMockIo(undefined, {
+    env: {
+      SIMULATOR_EVENT_BUS_NAME: "review-events",
+      SIMULATOR_AWS_REGION: "ap-southeast-2",
+      AWS_ACCESS_KEY_ID: "fake-access-key",
+      AWS_SECRET_ACCESS_KEY: "fake-secret-key"
+    },
+    eventBridgeClient
+  });
+
+  const status = await runSimulatorCli([
+    "publish-aws",
+    "--scenario",
+    "baseline-week",
+    "--aws-profile",
+    "review-profile",
+    "--batch-size",
+    "4",
+    "--confirm-aws-publish"
+  ], io);
+
+  assert.equal(status, 0);
+  assert.equal(commands.length, 3);
+  assert.deepEqual(commands.map((command) => command.input.Entries.length), [4, 4, 1]);
+
+  const firstEntry = commands[0].input.Entries[0];
+  const firstDetail = JSON.parse(firstEntry.Detail);
+
+  assert.equal(firstEntry.EventBusName, "review-events");
+  assert.equal(firstEntry.Source, "maintenance-data-simulator");
+  assert.equal(firstEntry.DetailType, "MaintenanceEvent");
+  assert.equal(firstDetail.eventType, "WorkOrderCreated");
+  assert.equal(Object.hasOwn(firstDetail, "expectation"), false);
+
+  const stdout = io.stdoutText();
+
+  assert.equal(stdout.includes("fake-secret-key"), false);
+  assert.equal(stdout.includes("fake-access-key"), false);
+  assert.equal(stdout.includes("review-profile"), false);
+
+  const logs = parseJsonLines(stdout);
+
+  assert.deepEqual(logs.map((entry) => entry.message), [
+    "aws-publish-started",
+    "aws-publish-batch-completed",
+    "aws-publish-batch-completed",
+    "aws-publish-batch-completed",
+    "aws-publish-completed"
+  ]);
+  assert.equal(logs[0].profileConfigured, true);
+  assert.equal(logs.at(-1).summary.publishedCount, 9);
+  assert.equal(logs.at(-1).summary.failedCount, 0);
+});
+
+test("publish-aws summarizes partial EventBridge failures without raw provider messages", async () => {
+  const eventBridgeClient = createMockEventBridgeClient((command) => ({
+    FailedEntryCount: 1,
+    Entries: [
+      {
+        ErrorCode: "InternalFailure",
+        ErrorMessage: "provider message that should not be logged"
+      },
+      ...command.input.Entries.slice(1).map(() => ({}))
+    ]
+  }));
+  const io = createMockIo(undefined, {
+    env: {
+      SIMULATOR_EVENT_BUS_NAME: "review-events",
+      SIMULATOR_AWS_REGION: "ap-southeast-2",
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/v2/credentials/fake"
+    },
+    eventBridgeClient
+  });
+
+  await assert.rejects(
+    () => runSimulatorCli([
+      "publish-aws",
+      "--scenario",
+      "baseline-week",
+      "--confirm-aws-publish"
+    ], io),
+    /AWS publish failed for batch 1\/1/
+  );
+
+  const stdout = io.stdoutText();
+
+  assert.equal(stdout.includes("provider message that should not be logged"), false);
+
+  const logs = parseJsonLines(stdout);
+
+  assert.deepEqual(logs.map((entry) => entry.message), [
+    "aws-publish-started",
+    "aws-publish-batch-failed",
+    "aws-publish-failed"
+  ]);
+  assert.equal(logs[1].failedCount, 1);
+  assert.equal(logs[1].failedEntries[0].errorCode, "InternalFailure");
+});
+
 test("feed batching builds API import requests without simulator-only expectations", () => {
   const scenarioPack = generateScenarioPack("baseline-week");
   const batches = createMaintenanceEventFeedBatches(scenarioPack, {
@@ -253,7 +400,7 @@ function runCli(args) {
   });
 }
 
-function createMockIo(fetch) {
+function createMockIo(fetch, options = {}) {
   let stdout = "";
   const io = {
     stdout: {
@@ -264,7 +411,7 @@ function createMockIo(fetch) {
     stderr: {
       write() {}
     },
-    env: {},
+    env: options.env ?? {},
     sleep: async () => {},
     stdoutText() {
       return stdout;
@@ -275,7 +422,20 @@ function createMockIo(fetch) {
     io.fetch = fetch;
   }
 
+  if (options.eventBridgeClient) {
+    io.eventBridgeClient = options.eventBridgeClient;
+  }
+
   return io;
+}
+
+function createMockEventBridgeClient(send = (command) => ({
+  FailedEntryCount: 0,
+  Entries: command.input.Entries.map(() => ({}))
+})) {
+  return {
+    send: async (command) => send(command)
+  };
 }
 
 function jsonResponse(body, options = {}) {

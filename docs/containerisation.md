@@ -40,6 +40,20 @@ Live feed mode posts deterministic synthetic maintenance-event batches to the lo
 
 For local host access, Docker Desktop usually supports `host.docker.internal`. Linux setups may need an explicit host gateway or a compose network. The dry-run command does not need the target API to be running.
 
+## AWS Publish Mode
+
+```bash
+docker run --rm \
+  -e SIMULATOR_EVENT_BUS_NAME=maintenance-planning-review-events \
+  -e SIMULATOR_AWS_REGION=ap-southeast-2 \
+  -e AWS_PROFILE=review \
+  -v "$HOME/.aws:/app/.aws:ro" \
+  maintenance-data-simulator:local \
+  publish-aws --scenario baseline-week --aws-profile review --confirm-aws-publish
+```
+
+Review tasks should provide credentials through the task role or a local named profile mounted outside the image for manual checks. The command publishes deterministic synthetic maintenance events to EventBridge and exits non-zero if EventBridge reports failed entries.
+
 ## API Scenario Smoke
 
 ```bash
