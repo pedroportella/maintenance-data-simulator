@@ -12,7 +12,8 @@ Dry-run mode validates and summarises deterministic synthetic scenario batches w
 Local feed command:
 
 ```bash
-simulator feed --scenario baseline-week --api-url http://localhost:5000
+cp .env.local.example .env.local
+simulator feed --scenario baseline-week
 docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000
 ```
 
@@ -37,7 +38,7 @@ The request body uses the scenario `sourceSystem`, `schemaVersion`, `batchIdempo
 
 Scenario packs already include event idempotency keys and an `apiImport.batchIdempotencyKey`. Single-batch feeds use that batch key unchanged. Multi-batch feeds append a deterministic batch suffix so retries and replays stay idempotent per posted request.
 
-The feed command sends an `X-Correlation-ID` header for the simulator run. Use `--correlation-id` to make it explicit in a local smoke; otherwise the CLI generates one for the run. The correlation header is not added to the deterministic event body.
+The feed command reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It sends an `X-Correlation-ID` header for the simulator run. Use `--correlation-id` to make it explicit in a local smoke; otherwise the CLI generates one for the run. The correlation header is not added to the deterministic event body.
 
 Useful options:
 
@@ -58,8 +59,8 @@ This mode is for local integration feedback with synthetic data. It does not con
 The API scenario smoke builds on live HTTP feed mode and verifies the next local planning boundary:
 
 ```bash
-node scripts/api-scenario-smoke.mjs --scenario baseline-week --api-url http://localhost:5000
-simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
+node scripts/api-scenario-smoke.mjs --scenario baseline-week
+simulator api-smoke --scenario baseline-week
 docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
 ```
 

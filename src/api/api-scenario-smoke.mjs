@@ -5,6 +5,7 @@ import {
   generateScenarioPack,
   listScenarioIds
 } from "../scenarios/scenario-generator.mjs";
+import { loadLocalEnv } from "../../scripts/env-loader.mjs";
 
 const DEFAULT_SCENARIO_ID = "baseline-week";
 const DEFAULT_BATCH_SIZE = 100;
@@ -996,7 +997,7 @@ function defaultIo() {
   return {
     stdout: process.stdout,
     stderr: process.stderr,
-    env: process.env
+    env: loadLocalEnv()
   };
 }
 

@@ -11,6 +11,7 @@ import {
 import {
   runApiScenarioSmoke
 } from "../src/api/api-scenario-smoke.mjs";
+import { loadLocalEnv } from "./env-loader.mjs";
 import {
   generateScenarioPack,
   listScenarioIds,
@@ -712,7 +713,7 @@ function defaultIo() {
   return {
     stdout: process.stdout,
     stderr: process.stderr,
-    env: process.env
+    env: loadLocalEnv()
   };
 }
 

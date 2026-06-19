@@ -24,7 +24,7 @@ const publicDocForbiddenPatterns = [
   { label: "old web app name", pattern: /\breviewer-console\b/i },
   { label: "AWS access key", pattern: /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/ },
   { label: "AWS account ARN", pattern: /arn:aws:iam::\d{12}:/ },
-  { label: "local env file path", pattern: /(^|[`'\s])\.env(?!\.example|\.local\.example)\b/ },
+  { label: "local env file path", pattern: /(^|[`'\s])\.env(?!\.example\b|\.local(?:\.example)?\b)\b/ },
   { label: "merge conflict marker", pattern: /^(<<<<<<<|=======|>>>>>>>)$/m }
 ];
 

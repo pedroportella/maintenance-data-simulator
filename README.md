@@ -73,12 +73,13 @@ The live container feed and API smoke commands expect the local API to be reacha
 ## API Scenario Smoke
 
 ```bash
-npm run api:smoke -- --api-url http://localhost:5000
-node scripts/api-scenario-smoke.mjs --scenario baseline-week --api-url http://localhost:5000
-simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
+cp .env.local.example .env.local
+pnpm api:smoke --scenario baseline-week
+node scripts/api-scenario-smoke.mjs --scenario baseline-week
+simulator api-smoke --scenario baseline-week
 ```
 
-The smoke checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
+The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
 
 ## Checks
 
@@ -86,6 +87,6 @@ The smoke checks local API readiness, feeds `baseline-week`, replays the same fe
 node --test
 node scripts/quality-guards.mjs all
 node scripts/scenario-smoke.mjs
-node scripts/api-scenario-smoke.mjs --api-url http://localhost:5000
+node scripts/api-scenario-smoke.mjs
 node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```
