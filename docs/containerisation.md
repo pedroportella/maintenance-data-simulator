@@ -40,6 +40,15 @@ Live feed mode posts deterministic synthetic maintenance-event batches to the lo
 
 For local host access, Docker Desktop usually supports `host.docker.internal`. Linux setups may need an explicit host gateway or a compose network. The dry-run command does not need the target API to be running.
 
+## API Scenario Smoke
+
+```bash
+docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
+npm run container:run:api-smoke
+```
+
+The smoke uses the same runtime image and checks the local API boundary end to end: readiness, scenario import, idempotent replay, planning-run creation, recommendations, a synthetic package decision and operations posture.
+
 ## Restricted Smoke
 
 ```bash

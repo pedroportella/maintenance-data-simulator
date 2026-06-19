@@ -27,7 +27,8 @@ RUN mkdir -p /runtime/scripts \
   && cp -R node_modules /runtime/node_modules \
   && cp -R src /runtime/src \
   && cp -R schemas /runtime/schemas \
-  && cp scripts/simulator.mjs /runtime/scripts/simulator.mjs
+  && cp scripts/simulator.mjs /runtime/scripts/simulator.mjs \
+  && cp scripts/api-scenario-smoke.mjs /runtime/scripts/api-scenario-smoke.mjs
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 WORKDIR /app

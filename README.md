@@ -47,7 +47,7 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs and post deterministic synthetic batches to a local API. AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. AWS publish commands remain planned execution modes.
 
 ## Generate Scenarios
 
@@ -64,10 +64,21 @@ npm run container:build
 npm run container:run:generate
 npm run container:run:feed:dry-run
 npm run container:run:feed
+npm run container:run:api-smoke
 node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```
 
-The live container feed command expects the local API to be reachable from the container. It posts to the maintenance-event import endpoint using scenario batch idempotency keys and an HTTP correlation id.
+The live container feed and API smoke commands expect the local API to be reachable from the container. They post to the maintenance-event import endpoint using scenario batch idempotency keys and an HTTP correlation id.
+
+## API Scenario Smoke
+
+```bash
+npm run api:smoke -- --api-url http://localhost:5000
+node scripts/api-scenario-smoke.mjs --scenario baseline-week --api-url http://localhost:5000
+simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
+```
+
+The smoke checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
 
 ## Checks
 
@@ -75,5 +86,6 @@ The live container feed command expects the local API to be reachable from the c
 node --test
 node scripts/quality-guards.mjs all
 node scripts/scenario-smoke.mjs
+node scripts/api-scenario-smoke.mjs --api-url http://localhost:5000
 node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```

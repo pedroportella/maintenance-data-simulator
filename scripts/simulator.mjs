@@ -9,6 +9,9 @@ import {
   summarizeScenarioPack
 } from "../src/contracts/scenario-contract.mjs";
 import {
+  runApiScenarioSmoke
+} from "../src/api/api-scenario-smoke.mjs";
+import {
   generateScenarioPack,
   listScenarioIds,
   stringifyScenarioPack
@@ -40,6 +43,10 @@ export async function runSimulatorCli(argv, io = defaultIo()) {
 
   if (command === "feed") {
     return runFeed(commandArgs, io);
+  }
+
+  if (command === "api-smoke") {
+    return runApiScenarioSmoke(commandArgs, io);
   }
 
   throw new CliError(`Unknown command: ${command}`);
@@ -666,12 +673,14 @@ function printUsage(stream) {
   simulator generate --scenario baseline-week
   simulator feed --scenario baseline-week --api-url http://localhost:5000 --dry-run
   simulator feed --scenario baseline-week --api-url http://localhost:5000
+  simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
   simulator --list
   simulator --help
 
 Commands:
-  generate  Write a deterministic synthetic scenario pack.
-  feed      Validate, preview or post a deterministic synthetic scenario feed.
+  generate   Write a deterministic synthetic scenario pack.
+  feed       Validate, preview or post a deterministic synthetic scenario feed.
+  api-smoke  Feed a scenario to the local API and verify planning recommendations.
 `);
 }
 

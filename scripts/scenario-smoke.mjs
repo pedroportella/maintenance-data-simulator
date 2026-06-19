@@ -26,6 +26,7 @@ const requiredFiles = [
   "src/scenarios/scenario-generator.mjs",
   "scripts/generate-scenario.mjs",
   "scripts/simulator.mjs",
+  "scripts/api-scenario-smoke.mjs",
   "scripts/container-smoke.mjs",
   "scenarios/baseline-week.scenario.json",
   "scenarios/event-window-conflict.scenario.json",
@@ -43,6 +44,7 @@ const requiredReadmeText = [
   "scenarios/baseline-week.scenario.json",
   "scripts/generate-scenario.mjs",
   "scripts/simulator.mjs",
+  "scripts/api-scenario-smoke.mjs",
   "Dockerfile",
   "synthetic"
 ];

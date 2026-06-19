@@ -52,3 +52,17 @@ Retry behavior is intentionally narrow: network failures and retryable HTTP stat
 Structured logs include the sanitized API target, scenario id, event count, batch count, batch idempotency key, HTTP status and import result counts. Credentials, query strings and fragments in the API URL are not written to logs.
 
 This mode is for local integration feedback with synthetic data. It does not connect to real source systems and does not replace the planned AWS publish path.
+
+## API Scenario Smoke
+
+The API scenario smoke builds on live HTTP feed mode and verifies the next local planning boundary:
+
+```bash
+node scripts/api-scenario-smoke.mjs --scenario baseline-week --api-url http://localhost:5000
+simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
+docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
+```
+
+The command waits for `/health/ready`, posts the scenario to `POST /api/v1/imports/maintenance-events`, posts the same scenario again to check idempotent replay, creates a planning run, fetches recommendations, records a package decision and reads operations posture.
+
+Failure messages call out the boundary that failed: API availability, validation failure, idempotency drift or missing recommendations. The command only uses deterministic synthetic scenario data.
