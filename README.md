@@ -47,7 +47,7 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. AWS publish commands remain planned execution modes.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API with an optional synthetic bearer token and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. AWS publish commands remain planned execution modes.
 
 ## Generate Scenarios
 
@@ -79,7 +79,7 @@ node scripts/api-scenario-smoke.mjs --scenario baseline-week
 simulator api-smoke --scenario baseline-week
 ```
 
-The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
+The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It reads `SIMULATOR_API_TOKEN` or `--api-token` when the local API protects `/api/v1` routes. It checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
 
 ## Checks
 

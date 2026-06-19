@@ -110,7 +110,9 @@ test("feed posts maintenance event batches with idempotency and a run correlatio
     "--retry-delay-ms",
     "0",
     "--correlation-id",
-    "feed-test-correlation"
+    "feed-test-correlation",
+    "--api-token",
+    "local-import-token"
   ], io);
 
   assert.equal(status, 0);
@@ -120,6 +122,7 @@ test("feed posts maintenance event batches with idempotency and a run correlatio
   assert.equal(requests[0].method, "POST");
   assert.equal(requests[0].headers["content-type"], "application/json");
   assert.equal(requests[0].headers["x-correlation-id"], "feed-test-correlation");
+  assert.equal(requests[0].headers.authorization, "Bearer local-import-token");
   assert.equal(
     requests[0].body.batchIdempotencyKey,
     `${scenarioPack.apiImport.batchIdempotencyKey}:batch-1-of-3`
@@ -135,6 +138,8 @@ test("feed posts maintenance event batches with idempotency and a run correlatio
     "feed-batch-completed",
     "feed-completed"
   ]);
+  assert.equal(logs[0].authorizationConfigured, true);
+  assert.equal(io.stdoutText().includes("local-import-token"), false);
   assert.equal(logs.at(-1).importSummary.batchCount, 3);
   assert.equal(logs.at(-1).importSummary.receivedCount, 9);
 });

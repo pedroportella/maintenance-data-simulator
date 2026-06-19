@@ -63,7 +63,7 @@ test("api-smoke feeds a scenario, replays idempotently, plans, recommends and re
       const importCall = calls.find((item) => item.pathname === "/api/v1/imports/maintenance-events");
       return jsonResponse({
         databaseConfigured: true,
-        status: "ready",
+        status: "healthy",
         latestImport: {
           importKind: "maintenance-events",
           idempotencyKey: importCall.body.batchIdempotencyKey
@@ -82,11 +82,14 @@ test("api-smoke feeds a scenario, replays idempotently, plans, recommends and re
     "--requested-by",
     "smoke-test",
     "--readiness-timeout-ms",
-    "1"
+    "1",
+    "--api-token",
+    "local-reviewer-token"
   ], io);
 
   assert.equal(status, 0);
   assert.equal(calls.every((call) => call.headers["x-correlation-id"] === "api-smoke-test"), true);
+  assert.equal(calls.every((call) => call.headers.authorization === "Bearer local-reviewer-token"), true);
   assert.deepEqual(calls.map((call) => `${call.method} ${call.pathname}`), [
     "GET /health/ready",
     "POST /api/v1/imports/maintenance-events",
@@ -102,8 +105,10 @@ test("api-smoke feeds a scenario, replays idempotently, plans, recommends and re
   const stdout = io.stdoutText();
   assert.equal(stdout.includes("secret"), false);
   assert.equal(stdout.includes("hidden"), false);
+  assert.equal(stdout.includes("local-reviewer-token"), false);
 
   const logs = parseJsonLines(stdout);
+  assert.equal(logs[0].authorizationConfigured, true);
   assert.equal(logs.at(-1).message, "api-smoke-completed");
   assert.equal(logs.at(-1).replaySummary.duplicateRequestCount, 1);
 });

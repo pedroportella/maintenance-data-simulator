@@ -23,7 +23,8 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
       "timeout-ms",
       "readiness-timeout-ms",
       "correlation-id",
-      "requested-by"
+      "requested-by",
+      "api-token"
     ])
   });
 
@@ -64,7 +65,8 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
       }
     ),
     correlationId: args.options["correlation-id"] ?? createRunCorrelationId(scenarioPack),
-    requestedBy: args.options["requested-by"] ?? "simulator-api-smoke"
+    requestedBy: args.options["requested-by"] ?? "simulator-api-smoke",
+    apiToken: getApiToken(args, io)
   };
   validateCorrelationId(smokeOptions.correlationId);
 
@@ -82,7 +84,8 @@ export async function executeApiScenarioSmoke(scenarioPack, options, io = defaul
   const requestOptions = {
     fetch: fetchImpl,
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    correlationId: options.correlationId
+    correlationId: options.correlationId,
+    apiToken: options.apiToken
   };
   const apiTarget = sanitizeUrlForLog(options.apiUrl);
 
@@ -93,6 +96,7 @@ export async function executeApiScenarioSmoke(scenarioPack, options, io = defaul
     scenarioId: scenarioPack.scenarioId,
     apiTarget,
     correlationId: options.correlationId,
+    authorizationConfigured: Boolean(options.apiToken),
     eventCount: summary.eventCount,
     batchCount: batches.length
   });
@@ -534,7 +538,8 @@ async function requestJson(method, url, body, options) {
       headers: {
         accept: "application/json",
         ...(body === undefined ? {} : { "content-type": "application/json" }),
-        "x-correlation-id": options.correlationId
+        "x-correlation-id": options.correlationId,
+        ...authorizationHeader(options.apiToken)
       },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal
@@ -670,8 +675,12 @@ function assertUpdatedRecommendation(body, packageId, expectedStatus) {
 }
 
 function assertOperationsPosture(body, expectedImportKeys, currentImportWasReplay) {
-  if (!isPlainObject(body) || body.databaseConfigured !== true || body.status !== "ready") {
-    throw new ApiScenarioSmokeError("Operations posture check failed: databaseConfigured=true and status=ready were expected.");
+  if (
+    !isPlainObject(body)
+    || body.databaseConfigured !== true
+    || !["healthy", "ready"].includes(body.status)
+  ) {
+    throw new ApiScenarioSmokeError("Operations posture check failed: databaseConfigured=true and status=healthy were expected.");
   }
 
   if (!isPlainObject(body.latestImport) || body.latestImport.importKind !== "maintenance-events") {
@@ -844,6 +853,14 @@ function getScenarioId(args) {
   return args.options.scenario ?? args.positionals[0] ?? DEFAULT_SCENARIO_ID;
 }
 
+function getApiToken(args, io) {
+  return cleanOptionalString(args.options["api-token"] ?? io.env.SIMULATOR_API_TOKEN, 4096);
+}
+
+function authorizationHeader(apiToken) {
+  return apiToken ? { authorization: `Bearer ${apiToken}` } : {};
+}
+
 function parseOptions(argv, spec) {
   const parsed = {
     options: {},
@@ -983,6 +1000,7 @@ function printApiSmokeUsage(stream) {
 
 Environment:
   SIMULATOR_API_URL may provide the API URL when --api-url is omitted.
+  SIMULATOR_API_TOKEN may provide a bearer token for protected local API routes.
 
 Options:
   --batch-size value             Number of events per HTTP batch. Default: ${DEFAULT_BATCH_SIZE}.
@@ -990,6 +1008,7 @@ Options:
   --readiness-timeout-ms value   Total readiness wait. Default: ${DEFAULT_READINESS_TIMEOUT_MS}.
   --correlation-id value         HTTP correlation id for this simulator smoke.
   --requested-by value           Planner audit actor for the synthetic decision.
+  --api-token value              Bearer token for protected local API routes.
 `);
 }
 

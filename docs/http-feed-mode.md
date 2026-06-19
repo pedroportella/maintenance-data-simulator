@@ -38,7 +38,9 @@ The request body uses the scenario `sourceSystem`, `schemaVersion`, `batchIdempo
 
 Scenario packs already include event idempotency keys and an `apiImport.batchIdempotencyKey`. Single-batch feeds use that batch key unchanged. Multi-batch feeds append a deterministic batch suffix so retries and replays stay idempotent per posted request.
 
-The feed command reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It sends an `X-Correlation-ID` header for the simulator run. Use `--correlation-id` to make it explicit in a local smoke; otherwise the CLI generates one for the run. The correlation header is not added to the deterministic event body.
+The feed command reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It reads `SIMULATOR_API_TOKEN` or `--api-token` when the local API protects `/api/v1` routes. The token is sent as a bearer token and is not written to structured logs.
+
+It sends an `X-Correlation-ID` header for the simulator run. Use `--correlation-id` to make it explicit in a local smoke; otherwise the CLI generates one for the run. The correlation header is not added to the deterministic event body.
 
 Useful options:
 
@@ -46,6 +48,7 @@ Useful options:
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --batch-size 50
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --max-retries 3 --retry-delay-ms 250
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --timeout-ms 10000 --correlation-id local-review-001
+simulator feed --scenario baseline-week --api-url http://localhost:5000 --api-token local-import-token
 ```
 
 Retry behavior is intentionally narrow: network failures and retryable HTTP statuses such as `408`, `429` and `5xx` responses are retried with exponential backoff. Contract failures such as `409` or `422` are summarized once and return a non-zero exit code.
@@ -64,6 +67,6 @@ simulator api-smoke --scenario baseline-week
 docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
 ```
 
-The command waits for `/health/ready`, posts the scenario to `POST /api/v1/imports/maintenance-events`, posts the same scenario again to check idempotent replay, creates a planning run, fetches recommendations, records a package decision and reads operations posture.
+The command waits for `/health/ready`, posts the scenario to `POST /api/v1/imports/maintenance-events`, posts the same scenario again to check idempotent replay, creates a planning run, fetches recommendations, records a package decision and reads operations posture. Use `SIMULATOR_API_TOKEN=local-reviewer-token` or `--api-token local-reviewer-token` when those API routes are protected by local review auth.
 
 Failure messages call out the boundary that failed: API availability, validation failure, idempotency drift or missing recommendations. The command only uses deterministic synthetic scenario data.

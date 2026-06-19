@@ -103,7 +103,8 @@ async function runFeed(argv, io) {
       "max-retries",
       "retry-delay-ms",
       "timeout-ms",
-      "correlation-id"
+      "correlation-id",
+      "api-token"
     ])
   });
 
@@ -139,7 +140,8 @@ async function runFeed(argv, io) {
       defaultValue: DEFAULT_FEED_TIMEOUT_MS,
       min: 1
     }),
-    correlationId: args.options["correlation-id"] ?? createRunCorrelationId(scenarioPack)
+    correlationId: args.options["correlation-id"] ?? createRunCorrelationId(scenarioPack),
+    apiToken: getApiToken(args, io)
   };
   validateCorrelationId(feedOptions.correlationId);
   const batches = createMaintenanceEventFeedBatches(scenarioPack, {
@@ -156,6 +158,7 @@ async function runFeed(argv, io) {
       ? sanitizedApiTarget
       : sanitizeUrlForLog(resolveImportUrl(apiUrl, scenarioPack.apiImport.endpoint)),
     correlationId: feedOptions.correlationId,
+    authorizationConfigured: Boolean(feedOptions.apiToken),
     eventCount: summary.eventCount,
     batchCount: batches.length,
     batchSize: feedOptions.batchSize
@@ -172,6 +175,7 @@ async function runFeed(argv, io) {
       apiTarget: sanitizeUrlForLog(importUrl),
       importUrl,
       correlationId: feedOptions.correlationId,
+      apiToken: feedOptions.apiToken,
       maxRetries: feedOptions.maxRetries,
       retryDelayMs: feedOptions.retryDelayMs,
       timeoutMs: feedOptions.timeoutMs
@@ -288,7 +292,8 @@ async function postBatchWithRetry(batch, options) {
       const response = await postJson(options.importUrl, batch.request, {
         fetch: options.fetch,
         timeoutMs: options.timeoutMs,
-        correlationId: options.correlationId
+        correlationId: options.correlationId,
+        apiToken: options.apiToken
       });
       const responseSummary = await summarizeResponse(response);
 
@@ -374,7 +379,8 @@ async function postJson(url, body, options) {
       headers: {
         accept: "application/json",
         "content-type": "application/json",
-        "x-correlation-id": options.correlationId
+        "x-correlation-id": options.correlationId,
+        ...authorizationHeader(options.apiToken)
       },
       body: JSON.stringify(body),
       signal: controller.signal
@@ -533,6 +539,14 @@ function getScenarioId(args) {
   }
 
   return args.options.scenario ?? args.positionals[0] ?? DEFAULT_SCENARIO_ID;
+}
+
+function getApiToken(args, io) {
+  return cleanOptionalString(args.options["api-token"] ?? io.env.SIMULATOR_API_TOKEN, 4096);
+}
+
+function authorizationHeader(apiToken) {
+  return apiToken ? { authorization: `Bearer ${apiToken}` } : {};
 }
 
 function parseOptions(argv, spec) {
@@ -699,6 +713,7 @@ function printFeedUsage(stream) {
 
 Environment:
   SIMULATOR_API_URL may provide the API URL when --api-url is omitted.
+  SIMULATOR_API_TOKEN may provide a bearer token for protected local API routes.
 
 Options:
   --batch-size value      Number of events per HTTP batch. Default: ${DEFAULT_FEED_BATCH_SIZE}.
@@ -706,6 +721,7 @@ Options:
   --retry-delay-ms value  Initial retry delay. Default: ${DEFAULT_FEED_RETRY_DELAY_MS}.
   --timeout-ms value      Per-request timeout. Default: ${DEFAULT_FEED_TIMEOUT_MS}.
   --correlation-id value  HTTP correlation id for this simulator run.
+  --api-token value       Bearer token for protected local API routes.
 `);
 }
 
