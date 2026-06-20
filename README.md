@@ -28,6 +28,8 @@ This simulator is one part of a three-repo synthetic maintenance-planning showca
 
 Use this repo to create repeatable input evidence. The API remains the source of recommendation and audit truth, while the web repo presents the planner workflow after data has been seeded or published.
 
+For a whole-system local Docker recipe, see the [local Docker system runbook](https://github.com/pedroportella/maintenance-planning-api/blob/main/docs/local-docker-system.md).
+
 ## Start Here
 
 - [Reviewer runbook](docs/reviewer-runbook.md)

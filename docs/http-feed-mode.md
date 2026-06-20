@@ -14,7 +14,7 @@ Local feed command:
 ```bash
 cp .env.local.example .env.local
 simulator feed --scenario baseline-week
-docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000
+docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 ```
 
 Live mode posts deterministic scenario batches to the local API maintenance-event import endpoint:
@@ -64,7 +64,7 @@ The API scenario smoke builds on live HTTP feed mode and verifies the next local
 ```bash
 node scripts/api-scenario-smoke.mjs --scenario baseline-week
 simulator api-smoke --scenario baseline-week
-docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
+docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 ```
 
 The command waits for `/health/ready`, posts the scenario to `POST /api/v1/imports/maintenance-events`, posts the same scenario again to check idempotent replay, creates a planning run, fetches recommendations, records a package decision and reads operations posture. Use `SIMULATOR_API_TOKEN=local-reviewer-token` or `--api-token local-reviewer-token` when those API routes are protected by local review auth.

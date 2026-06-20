@@ -2,6 +2,8 @@
 
 The simulator image packages the same deterministic synthetic scenario runner used by local checks and review smoke paths. It is a short-lived CLI container: it writes output, logs structured JSON for feed runs and exits with a clear status code.
 
+For the cross-repo local Docker recipe, including API, simulator and web commands, see the [local Docker system runbook](https://github.com/pedroportella/maintenance-planning-api/blob/main/docs/local-docker-system.md).
+
 ## Build
 
 ```bash
@@ -32,7 +34,7 @@ Dry-run mode validates and summarises the scenario without posting to an API.
 ## Local HTTP Feed
 
 ```bash
-docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000
+docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 npm run container:run:feed
 ```
 
@@ -57,7 +59,7 @@ Review tasks should provide credentials through the task role or a local named p
 ## API Scenario Smoke
 
 ```bash
-docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000
+docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 npm run container:run:api-smoke
 ```
 
