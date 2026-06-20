@@ -18,8 +18,19 @@ It supports local HTTP feed mode first, then AWS EventBridge publish mode.
 
 This is a simulator for review and learning. It does not connect to any employer, client or production source system. It does not own persistence, planning recommendations, API authorization or production data.
 
+## Showcase Repos
+
+This simulator is one part of a three-repo synthetic maintenance-planning showcase:
+
+- [maintenance-planning-api](https://github.com/pedroportella/maintenance-planning-api) owns persistence, planning recommendations, operations posture, worker ingestion, replay and outbound events.
+- [maintenance-data-simulator](https://github.com/pedroportella/maintenance-data-simulator) produces deterministic synthetic source-system-shaped data for local HTTP feed checks and explicit AWS EventBridge publish checks.
+- [maintenance-planning-web](https://github.com/pedroportella/maintenance-planning-web) provides the React planner workbench over typed service adapters, using mock mode by default and backend mode only when pointed at the API server-side.
+
+Use this repo to create repeatable input evidence. The API remains the source of recommendation and audit truth, while the web repo presents the planner workflow after data has been seeded or published.
+
 ## Start Here
 
+- [Reviewer runbook](docs/reviewer-runbook.md)
 - [Scenarios](docs/scenarios.md)
 - [Event contracts](docs/event-contracts.md)
 - [Containerisation](docs/containerisation.md)
