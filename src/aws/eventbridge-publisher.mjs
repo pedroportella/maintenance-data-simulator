@@ -1,15 +1,25 @@
-import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
-import { fromIni } from "@aws-sdk/credential-providers";
-
 export const DEFAULT_EVENTBRIDGE_SOURCE = "maintenance-data-simulator";
 export const DEFAULT_EVENTBRIDGE_DETAIL_TYPE = "MaintenanceEvent";
 export const EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST = 10;
 
-export function createEventBridgeClient({ region, profile }) {
-  return new EventBridgeClient({
+export async function createEventBridgeClient({ region, profile }) {
+  const [
+    { EventBridgeClient, PutEventsCommand },
+    { fromIni }
+  ] = await Promise.all([
+    import("@aws-sdk/client-eventbridge"),
+    import("@aws-sdk/credential-providers")
+  ]);
+  const client = new EventBridgeClient({
     region,
     ...(profile ? { credentials: fromIni({ profile }) } : {})
   });
+
+  return {
+    send(command) {
+      return client.send(new PutEventsCommand(command.input));
+    }
+  };
 }
 
 export async function publishScenarioPackToEventBridge({
@@ -46,7 +56,7 @@ export async function publishScenarioPackToEventBridge({
   for (let index = 0; index < batchCount; index += 1) {
     const batchNumber = index + 1;
     const batchEvents = events.slice(index * batchSize, (index + 1) * batchSize);
-    const command = new PutEventsCommand({
+    const command = createPutEventsCommand({
       Entries: batchEvents.map((event) => ({
         EventBusName: eventBusName,
         Source: source,
@@ -82,6 +92,10 @@ export class EventBridgePublishError extends Error {
     this.summary = summary;
     this.batchSummary = batchSummary;
   }
+}
+
+function createPutEventsCommand(input) {
+  return { input };
 }
 
 function toEventBridgeEntry(event) {

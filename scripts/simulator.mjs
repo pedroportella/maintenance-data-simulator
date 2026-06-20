@@ -283,12 +283,11 @@ async function runPublishAws(argv, io) {
     batchSize
   });
 
-  const client = io.eventBridgeClient ?? createEventBridgeClient({
-    region: awsRegion,
-    profile: awsProfile
-  });
-
   try {
+    const client = io.eventBridgeClient ?? (await createEventBridgeClient({
+      region: awsRegion,
+      profile: awsProfile
+    }));
     const publishSummary = await publishScenarioPackToEventBridge({
       client,
       scenarioPack,
