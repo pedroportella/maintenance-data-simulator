@@ -21,6 +21,7 @@ import {
 } from "../src/api/api-scenario-smoke.mjs";
 import { loadLocalEnv } from "./env-loader.mjs";
 import {
+  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds,
   stringifyScenarioPack
@@ -71,7 +72,7 @@ export async function runSimulatorCli(argv, io = defaultIo()) {
 async function runGenerate(argv, io) {
   const args = parseOptions(argv, {
     booleanOptions: new Set(["help", "list"]),
-    stringOptions: new Set(["scenario", "seed", "out"])
+    stringOptions: new Set(["scenario", "seed", "repeat", "out"])
   });
 
   if (args.options.help) {
@@ -85,7 +86,10 @@ async function runGenerate(argv, io) {
   }
 
   const scenarioId = getScenarioId(args);
-  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.options.seed });
+  const scenarioPack = generateScenarioPack(scenarioId, {
+    seed: args.options.seed,
+    repeat: getRepeat(args)
+  });
 
   if (!args.options.out) {
     io.stdout.write(stringifyScenarioPack(scenarioPack));
@@ -114,6 +118,7 @@ async function runFeed(argv, io) {
       "scenario",
       "seed",
       "api-url",
+      "repeat",
       "batch-size",
       "max-retries",
       "retry-delay-ms",
@@ -136,7 +141,10 @@ async function runFeed(argv, io) {
   }
 
   const sanitizedApiTarget = sanitizeUrlForLog(apiUrl);
-  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.options.seed });
+  const scenarioPack = generateScenarioPack(scenarioId, {
+    seed: args.options.seed,
+    repeat: getRepeat(args)
+  });
   const summary = summarizeScenarioPack(scenarioPack);
   const feedOptions = {
     batchSize: parseIntegerOption(args.options["batch-size"], "--batch-size", {
@@ -235,6 +243,7 @@ async function runPublishAws(argv, io) {
       "event-bus-name",
       "aws-region",
       "aws-profile",
+      "repeat",
       "batch-size"
     ])
   });
@@ -255,7 +264,10 @@ async function runPublishAws(argv, io) {
 
   assertAwsCredentialConfig(io.env, awsProfile);
 
-  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.options.seed });
+  const scenarioPack = generateScenarioPack(scenarioId, {
+    seed: args.options.seed,
+    repeat: getRepeat(args)
+  });
   const summary = summarizeScenarioPack(scenarioPack);
   const batchSize = parseIntegerOption(args.options["batch-size"], "--batch-size", {
     defaultValue: EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST,
@@ -666,6 +678,14 @@ function getScenarioId(args) {
   return args.options.scenario ?? args.positionals[0] ?? DEFAULT_SCENARIO_ID;
 }
 
+function getRepeat(args) {
+  return parseIntegerOption(args.options.repeat, "--repeat", {
+    defaultValue: 1,
+    min: 1,
+    max: MAX_SCENARIO_REPEAT
+  });
+}
+
 function getApiToken(args, io) {
   return cleanOptionalString(args.options["api-token"] ?? io.env.SIMULATOR_API_TOKEN, 4096);
 }
@@ -781,7 +801,7 @@ function parseOptions(argv, spec) {
   return parsed;
 }
 
-function parseIntegerOption(rawValue, optionName, { defaultValue, min }) {
+function parseIntegerOption(rawValue, optionName, { defaultValue, min, max }) {
   if (rawValue === undefined) {
     return defaultValue;
   }
@@ -794,6 +814,10 @@ function parseIntegerOption(rawValue, optionName, { defaultValue, min }) {
 
   if (!Number.isSafeInteger(value) || value < min) {
     throw new CliError(`${optionName} must be greater than or equal to ${min}`);
+  }
+
+  if (max !== undefined && value > max) {
+    throw new CliError(`${optionName} must be less than or equal to ${max}`);
   }
 
   return value;
@@ -908,10 +932,11 @@ function writeLog(stream, entry) {
 function printUsage(stream) {
   stream.write(`Usage:
   simulator generate --scenario baseline-week
+  simulator generate --scenario baseline-week --repeat 25
   simulator feed --scenario baseline-week --api-url http://localhost:5000 --dry-run
-  simulator feed --scenario baseline-week --api-url http://localhost:5000
+  simulator feed --scenario baseline-week --repeat 25 --api-url http://localhost:5000
   simulator api-smoke --scenario baseline-week --api-url http://localhost:5000
-  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
+  simulator publish-aws --scenario baseline-week --repeat 25 --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
   simulator --list
   simulator --help
 
@@ -925,15 +950,18 @@ Commands:
 
 function printGenerateUsage(stream) {
   stream.write(`Usage:
-  simulator generate --scenario baseline-week [--seed value] [--out path]
+  simulator generate --scenario baseline-week [--seed value] [--repeat 25] [--out path]
   simulator generate --list
+
+Options:
+  --repeat value  Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
 `);
 }
 
 function printFeedUsage(stream) {
   stream.write(`Usage:
   simulator feed --scenario baseline-week --api-url http://localhost:5000 --dry-run
-  simulator feed --scenario baseline-week --api-url http://localhost:5000 [--batch-size 100]
+  simulator feed --scenario baseline-week --repeat 25 --api-url http://localhost:5000 [--batch-size 100]
 
 Environment:
   SIMULATOR_API_URL may provide the API URL when --api-url is omitted.
@@ -941,6 +969,7 @@ Environment:
 
 Options:
   --batch-size value      Number of events per HTTP batch. Default: ${DEFAULT_FEED_BATCH_SIZE}.
+  --repeat value          Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
   --max-retries value     Retry count for retryable responses. Default: ${DEFAULT_FEED_MAX_RETRIES}.
   --retry-delay-ms value  Initial retry delay. Default: ${DEFAULT_FEED_RETRY_DELAY_MS}.
   --timeout-ms value      Per-request timeout. Default: ${DEFAULT_FEED_TIMEOUT_MS}.
@@ -951,8 +980,8 @@ Options:
 
 function printPublishAwsUsage(stream) {
   stream.write(`Usage:
-  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
-  simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --aws-profile review --confirm-aws-publish
+  simulator publish-aws --scenario baseline-week --repeat 25 --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
+  simulator publish-aws --scenario baseline-week --repeat 25 --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --aws-profile review --confirm-aws-publish
 
 Environment:
   SIMULATOR_EVENT_BUS_NAME may provide the EventBridge bus name when --event-bus-name is omitted.
@@ -962,6 +991,7 @@ Environment:
 Options:
   --confirm-aws-publish  Required confirmation for live EventBridge publishing.
   --batch-size value     Number of events per PutEvents request. Default: ${EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST}.
+  --repeat value         Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
 `);
 }
 

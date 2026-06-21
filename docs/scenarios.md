@@ -18,7 +18,10 @@ Generate or refresh the fixtures with:
 npm run generate:scenarios
 node scripts/generate-scenario.mjs --list
 node scripts/generate-scenario.mjs baseline-week
+node scripts/generate-scenario.mjs baseline-week --repeat 25
 ```
+
+Use `--repeat` when you need more deterministic synthetic events for API, queue or planner workbench volume checks. The repeated pack keeps the original scenario shape but gives each copy unique synthetic source ids, event ids, correlation ids and idempotency keys. Re-running the same repeated pack remains idempotent. To add more new records after a previous bulk load, increase `--repeat` or use a different `--seed`.
 
 The `baseline-week` fixture covers:
 

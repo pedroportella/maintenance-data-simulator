@@ -46,10 +46,13 @@ Useful options:
 
 ```bash
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --batch-size 50
+simulator feed --scenario baseline-week --repeat 25 --api-url http://localhost:5000 --batch-size 50
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --max-retries 3 --retry-delay-ms 250
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --timeout-ms 10000 --correlation-id local-review-001
 simulator feed --scenario baseline-week --api-url http://localhost:5000 --api-token local-import-token
 ```
+
+Use `--repeat` to push a larger deterministic synthetic pack into the API. Each repeated copy has unique synthetic source ids and idempotency keys, so it creates additional planner-visible records instead of replaying the same records as duplicates. Use the same `--repeat` value again when you want an idempotent replay of that larger pack. To add more new records later, increase `--repeat` or use a different `--seed`.
 
 Retry behavior is intentionally narrow: network failures and retryable HTTP statuses such as `408`, `429` and `5xx` responses are retried with exponential backoff. Contract failures such as `409` or `422` are summarized once and return a non-zero exit code.
 
@@ -64,6 +67,7 @@ The API scenario smoke builds on live HTTP feed mode and verifies the next local
 ```bash
 node scripts/api-scenario-smoke.mjs --scenario baseline-week
 simulator api-smoke --scenario baseline-week
+simulator api-smoke --scenario baseline-week --repeat 25
 docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 ```
 

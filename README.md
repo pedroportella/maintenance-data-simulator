@@ -68,15 +68,20 @@ The scenario packs are generated from explicit seeds and include expected outcom
 npm run generate:scenarios
 node scripts/generate-scenario.mjs --list
 node scripts/generate-scenario.mjs baseline-week
+node scripts/generate-scenario.mjs baseline-week --repeat 25
 ```
+
+Use `--repeat` to create a larger deterministic synthetic pack for queue, API and workbench volume checks. Each repeated copy has unique synthetic source ids, event ids and idempotency keys, so it creates additional API-visible work while remaining safe to replay. To add more new records after a previous bulk load, increase `--repeat` or use a different `--seed`.
 
 ## Container Runner
 
 ```bash
 npm run container:build
 npm run container:run:generate
+npm run container:run:generate:bulk
 npm run container:run:feed:dry-run
 npm run container:run:feed
+npm run container:run:feed:bulk
 npm run container:run:api-smoke
 node scripts/container-smoke.mjs --image maintenance-data-simulator:local
 ```
@@ -90,6 +95,7 @@ cp .env.local.example .env.local
 pnpm api:smoke --scenario baseline-week
 node scripts/api-scenario-smoke.mjs --scenario baseline-week
 simulator api-smoke --scenario baseline-week
+simulator api-smoke --scenario baseline-week --repeat 25
 ```
 
 The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment when `--api-url` is omitted. It reads `SIMULATOR_API_TOKEN` or `--api-token` when the local API protects `/api/v1` routes. It checks local API readiness, feeds `baseline-week`, replays the same feed to prove import idempotency, starts a planning run, verifies recommendations include the imported ready work order, records a synthetic package decision and checks operations posture.
@@ -98,6 +104,7 @@ The smoke reads `SIMULATOR_API_URL` from `.env.local` or the process environment
 
 ```bash
 simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
+simulator publish-aws --scenario baseline-week --repeat 25 --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --confirm-aws-publish
 simulator publish-aws --scenario baseline-week --event-bus-name maintenance-planning-review-events --aws-region ap-southeast-2 --aws-profile review --confirm-aws-publish
 ```
 

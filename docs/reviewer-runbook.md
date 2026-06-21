@@ -14,6 +14,7 @@ Use this runbook to inspect the simulator as the synthetic source-system-shaped 
 pnpm install
 pnpm verify
 pnpm simulator generate --scenario baseline-week
+pnpm simulator generate --scenario baseline-week --repeat 25
 pnpm simulator feed --scenario baseline-week --dry-run
 ```
 
@@ -22,9 +23,11 @@ When the sibling API is running with local SQL Server and a synthetic bearer tok
 ```bash
 cp .env.local.example .env.local
 pnpm api:smoke --scenario baseline-week
+pnpm simulator feed --scenario baseline-week --repeat 25 --api-url http://localhost:5000 --api-token local-reviewer-token
 ```
 
 The API smoke checks readiness, posts the deterministic scenario, retries the feed for idempotency, starts a planning run, records a synthetic package decision and checks operations posture.
+Use `--repeat` when you want more synthetic records for queue, API or workbench volume checks. Reusing the same seed and repeat value replays the same larger pack idempotently.
 
 ## Container Review
 
@@ -42,6 +45,7 @@ Run this only after the API review stack has been planned, applied and released 
 
 1. Confirm the API, worker, queues, EventBridge rule and database are healthy from the API runbook.
 2. Publish `baseline-week` to the review event bus with `--confirm-aws-publish`.
+   Use `--repeat 25` when the review goal is to exercise the queue and worker with more synthetic messages.
 3. Confirm EventBridge accepted the entries without logging credentials or account identifiers.
 4. Confirm the worker consumed queue messages and persisted synthetic work-order projections.
 5. Confirm operations posture reports freshness, queue depth and dead-letter state.

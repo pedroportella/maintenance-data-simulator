@@ -23,6 +23,34 @@ test("generate command writes a deterministic scenario pack to stdout", () => {
   assert.equal(scenarioPack.events[0].eventId.startsWith("evt-baseline-week-"), true);
 });
 
+test("generate command can scale a scenario with unique synthetic source ids", () => {
+  const result = runCli(["generate", "--scenario", "baseline-week", "--repeat", "3"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const scenarioPack = JSON.parse(result.stdout);
+
+  assertScenarioPack(scenarioPack);
+  assert.equal(scenarioPack.scenarioId, "baseline-week");
+  assert.equal(scenarioPack.events.length, 27);
+  assert.equal(scenarioPack.expectedOutcomes.counts.readyWorkOrders, 3);
+  assert.equal(scenarioPack.expectedOutcomes.counts.blockedWorkOrders, 3);
+  assert.equal(scenarioPack.expectedOutcomes.counts.rejectedEvents, 3);
+  assert.deepEqual(scenarioPack.expectedOutcomes.readyWorkOrderSourceIds, [
+    "WO-2000-R0001",
+    "WO-2000-R0002",
+    "WO-2000-R0003"
+  ]);
+
+  const duplicateEvents = scenarioPack.events.filter((event) => (
+    event.expectation.importDisposition === "ignored-duplicate"
+  ));
+
+  assert.equal(duplicateEvents.length, 3);
+  assert.equal(duplicateEvents[0].idempotencyKey, scenarioPack.events[0].idempotencyKey);
+  assert.equal(duplicateEvents[1].idempotencyKey, scenarioPack.events[9].idempotencyKey);
+  assert.equal(new Set(scenarioPack.events.map((event) => event.sourceRecordId)).size > 6, true);
+});
+
 test("feed dry-run emits structured logs without raw credential-like URL parts", () => {
   const result = runCli([
     "feed",
@@ -151,6 +179,53 @@ test("publish-aws sends EventBridge entries without simulator-only expectations 
   assert.equal(logs.at(-1).summary.failedCount, 0);
 });
 
+test("publish-aws supports scaled synthetic packs for queue volume checks", async () => {
+  const commands = [];
+  const eventBridgeClient = createMockEventBridgeClient((command) => {
+    commands.push(command);
+
+    return {
+      FailedEntryCount: 0,
+      Entries: command.input.Entries.map(() => ({}))
+    };
+  });
+  const io = createMockIo(undefined, {
+    env: {
+      SIMULATOR_EVENT_BUS_NAME: "review-events",
+      SIMULATOR_AWS_REGION: "ap-southeast-2",
+      AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/v2/credentials/fake"
+    },
+    eventBridgeClient
+  });
+
+  const status = await runSimulatorCli([
+    "publish-aws",
+    "--scenario",
+    "baseline-week",
+    "--repeat",
+    "3",
+    "--batch-size",
+    "10",
+    "--confirm-aws-publish"
+  ], io);
+
+  assert.equal(status, 0);
+  assert.equal(commands.length, 3);
+  assert.deepEqual(commands.map((command) => command.input.Entries.length), [10, 10, 7]);
+
+  const firstDetail = JSON.parse(commands[0].input.Entries[0].Detail);
+  const lastDetail = JSON.parse(commands[2].input.Entries.at(-1).Detail);
+
+  assert.equal(firstDetail.sourceRecordId, "WO-2000-R0001");
+  assert.equal(lastDetail.sourceRecordId, "CREW-MECH-2026-01-20-R0003");
+  assert.equal(Object.hasOwn(firstDetail, "expectation"), false);
+
+  const logs = parseJsonLines(io.stdoutText());
+
+  assert.equal(logs[0].eventCount, 27);
+  assert.equal(logs.at(-1).summary.publishedCount, 27);
+});
+
 test("publish-aws summarizes partial EventBridge failures without raw provider messages", async () => {
   const eventBridgeClient = createMockEventBridgeClient((command) => ({
     FailedEntryCount: 1,
@@ -217,6 +292,26 @@ test("feed batching builds API import requests without simulator-only expectatio
   assert.equal(Object.hasOwn(batches[0].request.events[0], "expectation"), false);
   assert.equal(batches[0].request.events[0].eventType, "WorkOrderCreated");
   assert.equal(batches[0].request.events[0].payload.sourceDataReadiness.status, "Ready");
+});
+
+test("feed batching supports scaled deterministic synthetic packs", () => {
+  const scenarioPack = generateScenarioPack("baseline-week", {
+    repeat: 3
+  });
+  const batches = createMaintenanceEventFeedBatches(scenarioPack, {
+    batchSize: 10
+  });
+
+  assert.equal(scenarioPack.events.length, 27);
+  assert.equal(batches.length, 3);
+  assert.deepEqual(batches.map((batch) => batch.eventCount), [10, 10, 7]);
+  assert.equal(
+    batches[0].batchIdempotencyKey,
+    `${scenarioPack.apiImport.batchIdempotencyKey}:batch-1-of-3`
+  );
+  assert.equal(batches[0].request.events[0].sourceRecordId, "WO-2000-R0001");
+  assert.equal(batches[1].request.events[0].sourceRecordId, "WO-2001-R0002");
+  assert.equal(Object.hasOwn(batches[0].request.events[0], "expectation"), false);
 });
 
 test("feed posts maintenance event batches with idempotency and a run correlation header", async () => {

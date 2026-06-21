@@ -17,7 +17,9 @@ The Dockerfile uses a maintained Node.js long-term-support base, installs with t
 
 ```bash
 docker run --rm maintenance-data-simulator:local generate --scenario baseline-week
+docker run --rm maintenance-data-simulator:local generate --scenario baseline-week --repeat 25
 npm run container:run:generate
+npm run container:run:generate:bulk
 ```
 
 The output is a deterministic synthetic scenario pack. It preserves the event envelope field names and readiness values used by the checked-in contracts.
@@ -35,10 +37,14 @@ Dry-run mode validates and summarises the scenario without posting to an API.
 
 ```bash
 docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
+docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --repeat 25 --batch-size 50 --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 npm run container:run:feed
+npm run container:run:feed:bulk
 ```
 
 Live feed mode posts deterministic synthetic maintenance-event batches to the local API import endpoint. It uses scenario batch idempotency keys, an HTTP correlation id and retry/backoff for network failures or retryable HTTP responses. The command exits non-zero when the API returns a contract, idempotency or persistence error.
+
+Use `--repeat` for a larger deterministic synthetic pack when testing API import volume or Planner Workbench backend mode with more records. Re-running the same repeat value replays the same larger pack idempotently.
 
 For local host access, Docker Desktop usually supports `host.docker.internal`. Linux setups may need an explicit host gateway or a compose network. The dry-run command does not need the target API to be running.
 
@@ -51,7 +57,7 @@ docker run --rm \
   -e AWS_PROFILE=review \
   -v "$HOME/.aws:/app/.aws:ro" \
   maintenance-data-simulator:local \
-  publish-aws --scenario baseline-week --aws-profile review --confirm-aws-publish
+  publish-aws --scenario baseline-week --repeat 25 --aws-profile review --confirm-aws-publish
 ```
 
 Review tasks should provide credentials through the task role or a local named profile mounted outside the image for manual checks. The command publishes deterministic synthetic maintenance events to EventBridge and exits non-zero if EventBridge reports failed entries.
@@ -60,6 +66,7 @@ Review tasks should provide credentials through the task role or a local named p
 
 ```bash
 docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
+docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --repeat 25 --api-url http://host.docker.internal:5000 --api-token local-reviewer-token
 npm run container:run:api-smoke
 ```
 

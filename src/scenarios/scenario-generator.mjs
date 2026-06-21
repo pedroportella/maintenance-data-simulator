@@ -5,6 +5,8 @@ import { CONTRACT_SCHEMA_VERSION, assertScenarioPack } from "../contracts/scenar
 const SOURCE_SYSTEM = "synthetic-source";
 const MINUTE_MS = 60 * 1000;
 const SECOND_MS = 1000;
+export const DEFAULT_SCENARIO_REPEAT = 1;
+export const MAX_SCENARIO_REPEAT = 1000;
 
 const SCENARIO_DEFINITIONS = Object.freeze({
   "baseline-week": Object.freeze({
@@ -86,6 +88,7 @@ export function generateScenarioPack(scenarioId, options = {}) {
   }
 
   const seed = options.seed ?? definition.seed;
+  const repeat = normalizeRepeat(options.repeat);
   const context = {
     scenarioId,
     seed,
@@ -119,7 +122,7 @@ export function generateScenarioPack(scenarioId, options = {}) {
     expectedOutcomes
   };
 
-  return assertScenarioPack(scenarioPack);
+  return assertScenarioPack(repeat === 1 ? scenarioPack : repeatScenarioPack(scenarioPack, repeat));
 }
 
 export function stringifyScenarioPack(scenarioPack) {
@@ -155,6 +158,128 @@ function buildExpectedOutcomes(definition, events) {
     },
     notes: definition.notes
   };
+}
+
+function repeatScenarioPack(scenarioPack, repeat) {
+  const events = [];
+  const readyWorkOrderSourceIds = [];
+  const blockedWorkOrderSourceIds = [];
+  const deferredWorkOrderSourceIds = [];
+  const rejectedEventIds = [];
+  const duplicateEventIds = [];
+  const staleEventIds = [];
+
+  for (let copyIndex = 0; copyIndex < repeat; copyIndex += 1) {
+    const suffix = repeatSuffix(copyIndex + 1);
+
+    events.push(...scenarioPack.events.map((event) => suffixEvent(event, suffix)));
+    readyWorkOrderSourceIds.push(
+      ...scenarioPack.expectedOutcomes.readyWorkOrderSourceIds.map((sourceId) => suffixSourceId(sourceId, suffix))
+    );
+    blockedWorkOrderSourceIds.push(
+      ...scenarioPack.expectedOutcomes.blockedWorkOrderSourceIds.map((sourceId) => suffixSourceId(sourceId, suffix))
+    );
+    deferredWorkOrderSourceIds.push(
+      ...scenarioPack.expectedOutcomes.deferredWorkOrderSourceIds.map((sourceId) => suffixSourceId(sourceId, suffix))
+    );
+    rejectedEventIds.push(
+      ...scenarioPack.expectedOutcomes.rejectedEventIds.map((eventId) => suffixIdentifier(eventId, suffix))
+    );
+    duplicateEventIds.push(
+      ...scenarioPack.expectedOutcomes.duplicateEventIds.map((eventId) => suffixIdentifier(eventId, suffix))
+    );
+    staleEventIds.push(
+      ...scenarioPack.expectedOutcomes.staleEventIds.map((eventId) => suffixIdentifier(eventId, suffix))
+    );
+  }
+
+  return {
+    ...scenarioPack,
+    name: `${scenarioPack.name} scaled x${repeat}`,
+    description: `${scenarioPack.description} Scaled deterministically for queue and planner workbench volume checks.`,
+    seed: `${scenarioPack.seed}:repeat-${repeat}`,
+    apiImport: {
+      ...scenarioPack.apiImport,
+      batchIdempotencyKey: `${scenarioPack.apiImport.batchIdempotencyKey}:repeat-${repeat}`
+    },
+    events,
+    expectedOutcomes: {
+      readyWorkOrderSourceIds,
+      blockedWorkOrderSourceIds,
+      deferredWorkOrderSourceIds,
+      rejectedEventIds,
+      duplicateEventIds,
+      staleEventIds,
+      counts: {
+        readyWorkOrders: readyWorkOrderSourceIds.length,
+        blockedWorkOrders: blockedWorkOrderSourceIds.length,
+        rejectedEvents: rejectedEventIds.length,
+        deferredWorkOrders: deferredWorkOrderSourceIds.length
+      },
+      notes: [
+        ...scenarioPack.expectedOutcomes.notes,
+        `Scaled from ${scenarioPack.scenarioId} with repeat ${repeat}; each copy has unique synthetic source ids and idempotency keys.`
+      ]
+    }
+  };
+}
+
+function suffixEvent(event, suffix) {
+  return {
+    ...event,
+    eventId: suffixIdentifier(event.eventId, suffix),
+    sourceRecordId: suffixSourceId(event.sourceRecordId, suffix),
+    correlationId: suffixIdentifier(event.correlationId, suffix),
+    idempotencyKey: suffixIdempotencyKey(event.idempotencyKey, suffix),
+    payload: suffixPayload(event.payload, suffix)
+  };
+}
+
+function suffixPayload(payload, suffix) {
+  const suffixed = { ...payload };
+
+  for (const key of [
+    "sourceId",
+    "workOrderNumber",
+    "assetSourceId",
+    "functionalLocationSourceId",
+    "workOrderSourceId",
+    "crewId"
+  ]) {
+    if (typeof suffixed[key] === "string") {
+      suffixed[key] = suffixSourceId(suffixed[key], suffix);
+    }
+  }
+
+  return suffixed;
+}
+
+function suffixSourceId(value, suffix) {
+  return suffixIdentifier(value, suffix);
+}
+
+function suffixIdempotencyKey(value, suffix) {
+  return suffixIdentifier(value, suffix.toLowerCase(), ":");
+}
+
+function suffixIdentifier(value, suffix, separator = "-") {
+  return `${value}${separator}${suffix}`;
+}
+
+function repeatSuffix(copyNumber) {
+  return `R${String(copyNumber).padStart(4, "0")}`;
+}
+
+function normalizeRepeat(value) {
+  if (value === undefined) {
+    return DEFAULT_SCENARIO_REPEAT;
+  }
+
+  if (!Number.isInteger(value) || value < 1 || value > MAX_SCENARIO_REPEAT) {
+    throw new Error(`repeat must be an integer between 1 and ${MAX_SCENARIO_REPEAT}`);
+  }
+
+  return value;
 }
 
 function buildEvent(context, spec, ordinal, priorEvents) {

@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import {
+  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds,
   stringifyScenarioPack
@@ -28,7 +29,10 @@ try {
 
 async function writeOneScenario(args) {
   const scenarioId = args.scenarioId ?? "baseline-week";
-  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.seed });
+  const scenarioPack = generateScenarioPack(scenarioId, {
+    seed: args.seed,
+    repeat: args.repeat
+  });
   const contents = stringifyScenarioPack(scenarioPack);
 
   if (!args.out) {
@@ -58,6 +62,7 @@ function parseArgs(argv) {
   const parsed = {
     scenarioId: undefined,
     seed: undefined,
+    repeat: 1,
     out: undefined,
     outDir: undefined,
     all: false,
@@ -85,6 +90,15 @@ function parseArgs(argv) {
 
     if (arg === "--seed") {
       parsed.seed = readOptionValue(argv, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--repeat") {
+      parsed.repeat = readIntegerOption(argv, index, arg, {
+        min: 1,
+        max: MAX_SCENARIO_REPEAT
+      });
       index += 1;
       continue;
     }
@@ -120,6 +134,10 @@ function parseArgs(argv) {
     throw new Error("--out can only be used when generating one scenario");
   }
 
+  if (parsed.repeat !== 1 && parsed.all) {
+    throw new Error("--repeat can only be used when generating one scenario");
+  }
+
   return parsed;
 }
 
@@ -133,11 +151,34 @@ function readOptionValue(argv, index, optionName) {
   return value;
 }
 
+function readIntegerOption(argv, index, optionName, { min, max }) {
+  const value = readOptionValue(argv, index, optionName);
+
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`${optionName} must be an integer`);
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < min) {
+    throw new Error(`${optionName} must be greater than or equal to ${min}`);
+  }
+
+  if (max !== undefined && parsed > max) {
+    throw new Error(`${optionName} must be less than or equal to ${max}`);
+  }
+
+  return parsed;
+}
+
 function printUsage() {
   process.stdout.write(`Usage:
   node scripts/generate-scenario.mjs --list
-  node scripts/generate-scenario.mjs [scenario-id] [--seed value] [--out path]
+  node scripts/generate-scenario.mjs [scenario-id] [--seed value] [--repeat value] [--out path]
   node scripts/generate-scenario.mjs --all [--out-dir scenarios]
+
+Options:
+  --repeat value  Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
 
 Scenario ids:
   ${listScenarioIds().join("\n  ")}

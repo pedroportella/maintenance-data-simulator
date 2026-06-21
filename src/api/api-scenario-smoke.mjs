@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { summarizeScenarioPack } from "../contracts/scenario-contract.mjs";
 import {
+  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds
 } from "../scenarios/scenario-generator.mjs";
@@ -18,6 +19,7 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
     stringOptions: new Set([
       "scenario",
       "seed",
+      "repeat",
       "api-url",
       "batch-size",
       "timeout-ms",
@@ -45,7 +47,14 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
     throw new ApiScenarioSmokeError("api-smoke requires --api-url or SIMULATOR_API_URL");
   }
 
-  const scenarioPack = generateScenarioPack(scenarioId, { seed: args.options.seed });
+  const scenarioPack = generateScenarioPack(scenarioId, {
+    seed: args.options.seed,
+    repeat: parseIntegerOption(args.options.repeat, "--repeat", {
+      defaultValue: 1,
+      min: 1,
+      max: MAX_SCENARIO_REPEAT
+    })
+  });
   const smokeOptions = {
     apiUrl,
     batchSize: parseIntegerOption(args.options["batch-size"], "--batch-size", {
@@ -919,7 +928,7 @@ function parseOptions(argv, spec) {
   return parsed;
 }
 
-function parseIntegerOption(rawValue, optionName, { defaultValue, min }) {
+function parseIntegerOption(rawValue, optionName, { defaultValue, min, max }) {
   if (rawValue === undefined) {
     return defaultValue;
   }
@@ -932,6 +941,10 @@ function parseIntegerOption(rawValue, optionName, { defaultValue, min }) {
 
   if (!Number.isSafeInteger(value) || value < min) {
     throw new ApiScenarioSmokeError(`${optionName} must be greater than or equal to ${min}`);
+  }
+
+  if (max !== undefined && value > max) {
+    throw new ApiScenarioSmokeError(`${optionName} must be less than or equal to ${max}`);
   }
 
   return value;
@@ -1004,6 +1017,7 @@ Environment:
 
 Options:
   --batch-size value             Number of events per HTTP batch. Default: ${DEFAULT_BATCH_SIZE}.
+  --repeat value                 Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
   --timeout-ms value             Per-request timeout. Default: ${DEFAULT_TIMEOUT_MS}.
   --readiness-timeout-ms value   Total readiness wait. Default: ${DEFAULT_READINESS_TIMEOUT_MS}.
   --correlation-id value         HTTP correlation id for this simulator smoke.

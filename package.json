@@ -12,6 +12,8 @@
     "container:run:feed": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token",
     "container:run:feed:dry-run": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --api-url http://host.docker.internal:5000 --dry-run",
     "container:run:generate": "docker run --rm maintenance-data-simulator:local generate --scenario baseline-week",
+    "container:run:generate:bulk": "docker run --rm maintenance-data-simulator:local generate --scenario baseline-week --repeat 25",
+    "container:run:feed:bulk": "docker run --rm maintenance-data-simulator:local feed --scenario baseline-week --repeat 25 --batch-size 50 --api-url http://host.docker.internal:5000 --api-token local-reviewer-token",
     "container:run:api-smoke": "docker run --rm maintenance-data-simulator:local api-smoke --scenario baseline-week --api-url http://host.docker.internal:5000 --api-token local-reviewer-token",
     "container:smoke": "node scripts/container-smoke.mjs --image maintenance-data-simulator:local",
     "api:smoke": "node scripts/api-scenario-smoke.mjs",
