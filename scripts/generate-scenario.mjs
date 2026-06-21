@@ -4,11 +4,15 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import {
-  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds,
   stringifyScenarioPack
 } from "../src/scenarios/scenario-generator.mjs";
+import {
+  DEFAULT_SCENARIO_ID,
+  DEFAULT_SCENARIO_REPEAT,
+  MAX_SCENARIO_REPEAT
+} from "../src/utils/constants.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -28,7 +32,7 @@ try {
 }
 
 async function writeOneScenario(args) {
-  const scenarioId = args.scenarioId ?? "baseline-week";
+  const scenarioId = args.scenarioId ?? DEFAULT_SCENARIO_ID;
   const scenarioPack = generateScenarioPack(scenarioId, {
     seed: args.seed,
     repeat: args.repeat
@@ -62,7 +66,7 @@ function parseArgs(argv) {
   const parsed = {
     scenarioId: undefined,
     seed: undefined,
-    repeat: 1,
+    repeat: DEFAULT_SCENARIO_REPEAT,
     out: undefined,
     outDir: undefined,
     all: false,
@@ -134,7 +138,7 @@ function parseArgs(argv) {
     throw new Error("--out can only be used when generating one scenario");
   }
 
-  if (parsed.repeat !== 1 && parsed.all) {
+  if (parsed.repeat !== DEFAULT_SCENARIO_REPEAT && parsed.all) {
     throw new Error("--repeat can only be used when generating one scenario");
   }
 
@@ -178,7 +182,7 @@ function printUsage() {
   node scripts/generate-scenario.mjs --all [--out-dir scenarios]
 
 Options:
-  --repeat value  Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
+  --repeat value  Number of deterministic synthetic copies to include. Default: ${DEFAULT_SCENARIO_REPEAT}. Max: ${MAX_SCENARIO_REPEAT}.
 
 Scenario ids:
   ${listScenarioIds().join("\n  ")}

@@ -1,6 +1,14 @@
-export const DEFAULT_EVENTBRIDGE_SOURCE = "maintenance-data-simulator";
-export const DEFAULT_EVENTBRIDGE_DETAIL_TYPE = "MaintenanceEvent";
-export const EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST = 10;
+import {
+  DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
+  DEFAULT_EVENTBRIDGE_SOURCE,
+  EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST
+} from "../utils/constants.mjs";
+
+export {
+  DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
+  DEFAULT_EVENTBRIDGE_SOURCE,
+  EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST
+} from "../utils/constants.mjs";
 
 export async function createEventBridgeClient({ region, profile }) {
   const [

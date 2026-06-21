@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 
 import { CONTRACT_SCHEMA_VERSION, assertScenarioPack } from "../contracts/scenario-contract.mjs";
-
-const SOURCE_SYSTEM = "synthetic-source";
-const MINUTE_MS = 60 * 1000;
-const SECOND_MS = 1000;
-export const DEFAULT_SCENARIO_REPEAT = 1;
-export const MAX_SCENARIO_REPEAT = 1000;
+import {
+  DEFAULT_SCENARIO_REPEAT,
+  MAX_SCENARIO_REPEAT,
+  MILLISECONDS_PER_MINUTE,
+  MILLISECONDS_PER_SECOND,
+  SYNTHETIC_SOURCE_SYSTEM
+} from "../utils/constants.mjs";
 
 const SCENARIO_DEFINITIONS = Object.freeze({
   "baseline-week": Object.freeze({
@@ -93,7 +94,7 @@ export function generateScenarioPack(scenarioId, options = {}) {
     scenarioId,
     seed,
     seedTag: shortHash(seed),
-    sourceSystem: SOURCE_SYSTEM,
+    sourceSystem: SYNTHETIC_SOURCE_SYSTEM,
     referenceTimeUtc: definition.referenceTimeUtc
   };
   const eventSpecs = definition.buildEvents(context);
@@ -111,7 +112,7 @@ export function generateScenarioPack(scenarioId, options = {}) {
     schemaVersion: CONTRACT_SCHEMA_VERSION,
     seed,
     referenceTimeUtc: definition.referenceTimeUtc,
-    sourceSystem: SOURCE_SYSTEM,
+    sourceSystem: SYNTHETIC_SOURCE_SYSTEM,
     apiImport: {
       endpoint: "/api/v1/imports/maintenance-events",
       importKind: "maintenance-events",
@@ -975,11 +976,11 @@ function issue(code, severity, sourceField, detail) {
 }
 
 function at(context, minutes) {
-  return toIso(new Date(Date.parse(context.referenceTimeUtc) + minutes * MINUTE_MS));
+  return toIso(new Date(Date.parse(context.referenceTimeUtc) + minutes * MILLISECONDS_PER_MINUTE));
 }
 
 function addSeconds(isoDateTime, seconds) {
-  return toIso(new Date(Date.parse(isoDateTime) + seconds * SECOND_MS));
+  return toIso(new Date(Date.parse(isoDateTime) + seconds * MILLISECONDS_PER_SECOND));
 }
 
 function toIso(date) {

@@ -9,9 +9,6 @@ import {
   summarizeScenarioPack
 } from "../src/contracts/scenario-contract.mjs";
 import {
-  DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
-  DEFAULT_EVENTBRIDGE_SOURCE,
-  EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST,
   EventBridgePublishError,
   createEventBridgeClient,
   publishScenarioPackToEventBridge
@@ -21,21 +18,28 @@ import {
 } from "../src/api/api-scenario-smoke.mjs";
 import { loadLocalEnv } from "./env-loader.mjs";
 import {
-  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds,
   stringifyScenarioPack
 } from "../src/scenarios/scenario-generator.mjs";
+import {
+  AWS_PROFILE_MAX_LENGTH,
+  AWS_REGION_MAX_LENGTH,
+  DEFAULT_EVENTBRIDGE_DETAIL_TYPE,
+  DEFAULT_EVENTBRIDGE_SOURCE,
+  DEFAULT_FEED_BATCH_SIZE,
+  DEFAULT_FEED_MAX_RETRIES,
+  DEFAULT_FEED_RETRY_DELAY_MS,
+  DEFAULT_FEED_TIMEOUT_MS,
+  DEFAULT_SCENARIO_ID,
+  DEFAULT_SCENARIO_REPEAT,
+  EVENT_BUS_NAME_MAX_LENGTH,
+  EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST,
+  MAX_SCENARIO_REPEAT,
+  RETRYABLE_HTTP_STATUS_CODES
+} from "../src/utils/constants.mjs";
 
-const DEFAULT_SCENARIO_ID = "baseline-week";
-const DEFAULT_FEED_BATCH_SIZE = 100;
-const DEFAULT_FEED_MAX_RETRIES = 2;
-const DEFAULT_FEED_RETRY_DELAY_MS = 250;
-const DEFAULT_FEED_TIMEOUT_MS = 10_000;
-const RETRYABLE_HTTP_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
-const AWS_REGION_MAX_LENGTH = 80;
-const AWS_PROFILE_MAX_LENGTH = 160;
-const EVENT_BUS_NAME_MAX_LENGTH = 256;
+const RETRYABLE_HTTP_STATUSES = new Set(RETRYABLE_HTTP_STATUS_CODES);
 
 export async function runSimulatorCli(argv, io = defaultIo()) {
   const [command, ...commandArgs] = argv;
@@ -680,7 +684,7 @@ function getScenarioId(args) {
 
 function getRepeat(args) {
   return parseIntegerOption(args.options.repeat, "--repeat", {
-    defaultValue: 1,
+    defaultValue: DEFAULT_SCENARIO_REPEAT,
     min: 1,
     max: MAX_SCENARIO_REPEAT
   });
@@ -954,7 +958,7 @@ function printGenerateUsage(stream) {
   simulator generate --list
 
 Options:
-  --repeat value  Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
+  --repeat value  Number of deterministic synthetic copies to include. Default: ${DEFAULT_SCENARIO_REPEAT}. Max: ${MAX_SCENARIO_REPEAT}.
 `);
 }
 
@@ -969,7 +973,7 @@ Environment:
 
 Options:
   --batch-size value      Number of events per HTTP batch. Default: ${DEFAULT_FEED_BATCH_SIZE}.
-  --repeat value          Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
+  --repeat value          Number of deterministic synthetic copies to include. Default: ${DEFAULT_SCENARIO_REPEAT}. Max: ${MAX_SCENARIO_REPEAT}.
   --max-retries value     Retry count for retryable responses. Default: ${DEFAULT_FEED_MAX_RETRIES}.
   --retry-delay-ms value  Initial retry delay. Default: ${DEFAULT_FEED_RETRY_DELAY_MS}.
   --timeout-ms value      Per-request timeout. Default: ${DEFAULT_FEED_TIMEOUT_MS}.
@@ -991,7 +995,7 @@ Environment:
 Options:
   --confirm-aws-publish  Required confirmation for live EventBridge publishing.
   --batch-size value     Number of events per PutEvents request. Default: ${EVENTBRIDGE_MAX_ENTRIES_PER_REQUEST}.
-  --repeat value         Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
+  --repeat value         Number of deterministic synthetic copies to include. Default: ${DEFAULT_SCENARIO_REPEAT}. Max: ${MAX_SCENARIO_REPEAT}.
 `);
 }
 

@@ -2,16 +2,20 @@ import { randomUUID } from "node:crypto";
 
 import { summarizeScenarioPack } from "../contracts/scenario-contract.mjs";
 import {
-  MAX_SCENARIO_REPEAT,
   generateScenarioPack,
   listScenarioIds
 } from "../scenarios/scenario-generator.mjs";
+import {
+  API_SMOKE_DECISION_REASON_CODE,
+  DEFAULT_API_SMOKE_REQUESTED_BY,
+  DEFAULT_HTTP_BATCH_SIZE as DEFAULT_BATCH_SIZE,
+  DEFAULT_HTTP_TIMEOUT_MS as DEFAULT_TIMEOUT_MS,
+  DEFAULT_READINESS_TIMEOUT_MS,
+  DEFAULT_SCENARIO_ID,
+  DEFAULT_SCENARIO_REPEAT,
+  MAX_SCENARIO_REPEAT
+} from "../utils/constants.mjs";
 import { loadLocalEnv } from "../../scripts/env-loader.mjs";
-
-const DEFAULT_SCENARIO_ID = "baseline-week";
-const DEFAULT_BATCH_SIZE = 100;
-const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_READINESS_TIMEOUT_MS = 30_000;
 
 export async function runApiScenarioSmoke(argv, io = defaultIo()) {
   const args = parseOptions(argv, {
@@ -50,7 +54,7 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
   const scenarioPack = generateScenarioPack(scenarioId, {
     seed: args.options.seed,
     repeat: parseIntegerOption(args.options.repeat, "--repeat", {
-      defaultValue: 1,
+      defaultValue: DEFAULT_SCENARIO_REPEAT,
       min: 1,
       max: MAX_SCENARIO_REPEAT
     })
@@ -74,7 +78,7 @@ export async function runApiScenarioSmoke(argv, io = defaultIo()) {
       }
     ),
     correlationId: args.options["correlation-id"] ?? createRunCorrelationId(scenarioPack),
-    requestedBy: args.options["requested-by"] ?? "simulator-api-smoke",
+    requestedBy: args.options["requested-by"] ?? DEFAULT_API_SMOKE_REQUESTED_BY,
     apiToken: getApiToken(args, io)
   };
   validateCorrelationId(smokeOptions.correlationId);
@@ -148,7 +152,7 @@ export async function executeApiScenarioSmoke(scenarioPack, options, io = defaul
     stdout: io.stdout,
     scenarioId: scenarioPack.scenarioId,
     apiTarget,
-    requestedBy: options.requestedBy ?? "simulator-api-smoke"
+    requestedBy: options.requestedBy ?? DEFAULT_API_SMOKE_REQUESTED_BY
   });
 
   const fetchedRun = await getPlanningRun(planningRun.location, options.apiUrl, {
@@ -172,13 +176,13 @@ export async function executeApiScenarioSmoke(scenarioPack, options, io = defaul
     stdout: io.stdout,
     scenarioId: scenarioPack.scenarioId,
     apiTarget,
-    requestedBy: options.requestedBy ?? "simulator-api-smoke"
+    requestedBy: options.requestedBy ?? DEFAULT_API_SMOKE_REQUESTED_BY
   });
   assertDecision(
     decision.body,
     selectedRecommendation.packageId,
     selectedRecommendation.decision,
-    options.requestedBy ?? "simulator-api-smoke"
+    options.requestedBy ?? DEFAULT_API_SMOKE_REQUESTED_BY
   );
 
   const updatedRecommendations = await getRecommendations(planningRun.body.id, options.apiUrl, {
@@ -477,7 +481,7 @@ async function recordPackageDecision(recommendation, apiUrl, options) {
     resolveApiUrl(apiUrl, `/api/v1/packages/${recommendation.packageId}/decisions`),
     {
       decision: recommendation.decision,
-      reasonCode: "simulator-api-smoke",
+      reasonCode: API_SMOKE_DECISION_REASON_CODE,
       notes: "Synthetic planner decision for local review.",
       decidedBy: options.requestedBy
     },
@@ -662,7 +666,7 @@ function assertDecision(body, packageId, decision, requestedBy) {
   const matchingDecision = decisions.find((item) =>
     item.packageId === packageId
     && item.decision === decision
-    && item.reasonCode === "simulator-api-smoke"
+    && item.reasonCode === API_SMOKE_DECISION_REASON_CODE
     && item.decidedBy === requestedBy
   );
 
@@ -1017,7 +1021,7 @@ Environment:
 
 Options:
   --batch-size value             Number of events per HTTP batch. Default: ${DEFAULT_BATCH_SIZE}.
-  --repeat value                 Number of deterministic synthetic copies to include. Default: 1. Max: ${MAX_SCENARIO_REPEAT}.
+  --repeat value                 Number of deterministic synthetic copies to include. Default: ${DEFAULT_SCENARIO_REPEAT}. Max: ${MAX_SCENARIO_REPEAT}.
   --timeout-ms value             Per-request timeout. Default: ${DEFAULT_TIMEOUT_MS}.
   --readiness-timeout-ms value   Total readiness wait. Default: ${DEFAULT_READINESS_TIMEOUT_MS}.
   --correlation-id value         HTTP correlation id for this simulator smoke.
