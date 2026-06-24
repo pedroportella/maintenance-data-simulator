@@ -4,7 +4,7 @@ Neutral source-system simulator for the maintenance-planning API prototype.
 
 ## What This Is
 
-This repository will generate deterministic synthetic maintenance data:
+This repository generates deterministic synthetic maintenance data:
 
 - source-system-shaped work-order events;
 - asset and functional-location context;
@@ -12,7 +12,7 @@ This repository will generate deterministic synthetic maintenance data:
 - parts availability and crew capacity changes;
 - scenario packs for local and deployed smoke checks.
 
-It supports local HTTP feed mode first, then AWS EventBridge publish mode.
+It supports local HTTP feed mode, API scenario smoke checks and explicit AWS EventBridge publish mode.
 
 ## Boundary
 
@@ -62,7 +62,9 @@ The repository contains deterministic scenario generation, three checked-in scen
 - `scenarios/event-window-conflict.scenario.json`
 - `scenarios/parts-delay-replan.scenario.json`
 
-The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API with an optional synthetic bearer token, publish deterministic synthetic events to EventBridge with explicit confirmation and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture. A live deployed EventBridge/SQS/worker smoke still needs review infrastructure.
+The scenario packs are generated from explicit seeds and include expected outcome counts for ready, blocked, rejected and deferred work. The container runner can generate scenarios, run HTTP feed dry-runs, post deterministic synthetic batches to a local API with an optional synthetic bearer token, publish deterministic synthetic events to EventBridge with explicit confirmation and run a scenario/API smoke that checks import idempotency, planning recommendations, a package decision and operations posture.
+
+Local HTTP/API smoke evidence is available through the sibling API runbooks. Live EventBridge/SQS/worker evidence still requires review infrastructure and has not been run from this repository state.
 
 ## Generate Scenarios
 

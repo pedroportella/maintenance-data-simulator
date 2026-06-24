@@ -29,6 +29,8 @@ pnpm simulator feed --scenario baseline-week --repeat 25 --api-url http://localh
 The API smoke checks readiness, posts the deterministic scenario, retries the feed for idempotency, starts a planning run, records a synthetic package decision and checks operations posture.
 Use `--repeat` when you want more synthetic records for queue, API or workbench volume checks. Reusing the same seed and repeat value replays the same larger pack idempotently.
 
+The cross-repo local Docker runbook in the API repo is the source of truth for the proven API, SQL Server, simulator and backend-mode web path.
+
 ## Container Review
 
 ```bash
